@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input Data</title>
+</head>
+<body>
+    <h1>Input your name</h1>
+    <form action="/submit" method="post">
+        <label for="username">Name:</label>
+        <input type="text" id="name" name="username_input" required>
+        <button type="submit">Submit</button>
+    </form>
+
+    {% if name_sent %}
+        <p>Hello, {{ name_sent }}! your name had been received.</p>
+    {% endif %}
+</body>
+</html>
