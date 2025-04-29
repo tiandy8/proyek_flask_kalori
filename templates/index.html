@@ -1,12 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }}</title>
-</head>
-<body>
-    <h1>Welcome to calora, {{user}}</h1>
-    <p>Calora is Your buddy Calories tracking app you ever need</p>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero-section">
+    <div class="hero-content">
+        <h1 class="hero-title">Welcome to NutriTrack ✨</h1>
+        <p class="hero-subtitle">Effortlessly track your calorie intake and food ingredients.</p>
+        <p class="hero-description">Simply upload a photo of your meal, and let us handle the analysis.</p>
+        {% if not current_user.is_authenticated %}
+        <div class="hero-actions">
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">Get Started Free</a>
+            <a href="{{ url_for('login') }}" class="btn btn-secondary btn-lg">Log In</a>
+        </div>
+        {% else %}
+        <p class="hero-description">Go to your <a href="{{ url_for('dashboard') }}" class="link-styled">Dashboard</a> to start tracking.</p>
+        {% endif %}
+    </div>
+     </section>
+{% endblock %}

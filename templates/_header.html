@@ -1,0 +1,23 @@
+<header class="site-header">
+    <nav class="navbar container">
+        <a href="{{ url_for('index') }}" class="nav-logo">Calora</a>
+        <div class="nav-links">
+            <ul class="nav-menu">
+                 </ul>
+             <ul class="nav-auth">
+                {% if current_user.is_authenticated %}
+                    <li class="nav-item"><a href="{{ url_for('dashboard') }}" class="nav-link" data-nav-id="dashboard">Dashboard</a></li>
+                    <li class="nav-item"><a href="{{ url_for('logout') }}" class="nav-link btn btn-outline" data-nav-id="logout">Logout</a></li>
+                {% else %}
+                    <li class="nav-item"><a href="{{ url_for('login') }}" class="nav-link" data-nav-id="login">Login</a></li>
+                    <li class="nav-item"><a href="{{ url_for('register') }}" class="nav-link btn btn-primary" data-nav-id="register">Sign Up</a></li>
+                {% endif %}
+            </ul>
+        </div>
+         <button class="hamburger" id="hamburger-button" aria-label="Toggle menu" aria-expanded="false">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </nav>
+</header>

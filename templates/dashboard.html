@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="dashboard-header">
+    <h1>Welcome, {{ current_user.username }}!</h1>
+    <p>This is your NutriTrack dashboard. Let's track your meals.</p>
+</section>
+
+<section class="dashboard-features">
+
+    <div class="feature-card card">
+        <div class="card-body">
+            <h2 class="card-title">Scan Food Photo</h2>
+            <p class="card-text">Upload an image of your food to get nutritional insights.</p>
+            <form action="/scan-food" method="post" enctype="multipart/form-data" class="feature-form">
+                 <label for="food_image_input" class="btn btn-secondary">Choose Image</label>
+                 <input type="file" id="food_image_input" name="food_image" accept="image/*" required style="display: none;">
+                 <span id="file-chosen-text">No file chosen</span>
+                 <button type="submit" class="btn btn-primary" disabled id="scan-button">Scan Food</button>
+            </form>
+            <div id="scan-results" class="scan-results-placeholder" style="margin-top: 1rem;">
+                </div>
+        </div>
+    </div>
+
+    <div class="feature-card card">
+        <div class="card-body">
+            <h2 class="card-title">Chat with NutriBot</h2>
+            <p class="card-text">Ask our AI assistant about health and nutrition.</p>
+            <div id="chatbox" class="feature-form">
+                 <div id="chat-output" class="chat-output-area">
+                     <div class="chat-message bot">Hello! How can I help you with your nutrition today?</div>
+                 </div>
+                 <div class="chat-input-area">
+                    <input type="text" id="chat-input" class="form-control" placeholder="Ask something...">
+                    <button id="send-chat" class="btn btn-secondary">Send</button>
+                 </div>
+             </div>
+        </div>
+    </div>
+
+    <div class="feature-card card">
+        <div class="card-body">
+            <h2 class="card-title">Your Food History</h2>
+            <p class="card-text">A log of the meals you've tracked previously.</p>
+            <div class="history-placeholder">
+                (Your tracked meals will be listed here soon.)
+            </div>
+        </div>
+    </div>
+
+</section>
+
+<script>
+    const fileInput = document.getElementById('food_image_input');
+    const fileChosenText = document.getElementById('file-chosen-text');
+    const scanButton = document.getElementById('scan-button');
+
+    if(fileInput) {
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                fileChosenText.textContent = this.files[0].name;
+                scanButton.disabled = false; // Enable button when file is chosen
+            } else {
+                fileChosenText.textContent = 'No file chosen';
+                scanButton.disabled = true; // Disable button if no file
+            }
+        });
+    }
+</script>
+{% endblock %}

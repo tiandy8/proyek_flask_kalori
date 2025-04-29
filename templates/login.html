@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <h2 class="auth-title">Log In to Your Account</h2>
+        <form action="{{ url_for('login') }}" method="post" novalidate class="auth-form">
+            <div class="form-group">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" id="username" name="username" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" id="password" name="password" class="form-control" required>
+            </div>
+            <div class="form-group form-check">
+                <input type="checkbox" id="remember" name="remember" class="form-check-input">
+                <label for="remember" class="form-check-label">Remember me</label>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary btn-block">Log In</button>
+            </div>
+        </form>
+        <p class="auth-switch">Don't have an account? <a href="{{ url_for('register') }}" class="link-styled">Sign up</a></p>
+    </div>
+</div>
+{% endblock %}
