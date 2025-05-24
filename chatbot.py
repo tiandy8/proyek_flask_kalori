@@ -79,3 +79,35 @@ def get_gemini_response(user_message):
 # chat = model.start_chat(history=[]) # Need to load/save history
 # response = chat.send_message(user_message)
 # return response.text
+
+def analyze_food_image(image_data):
+    if not api_key:
+        return "Sorry, the image analysis is not configured correctly due to an API key issue."
+
+    try:
+        # Initialize the Gemini Pro Vision model
+        model = genai.GenerativeModel('gemini-pro-vision')
+        
+        # Create the prompt for food analysis
+        prompt = """Analyze this food image and provide:
+1. A description of the food
+2. Estimated calories (if possible to identify)
+3. Key nutritional information
+4. Any health benefits or concerns
+
+Please be specific but acknowledge that calorie estimates are approximate."""
+
+        # Generate response from the image
+        response = model.generate_content([prompt, image_data])
+        
+        if response.parts:
+            return response.text
+        elif response.prompt_feedback and response.prompt_feedback.block_reason:
+            print(f"Gemini response blocked. Reason: {response.prompt_feedback.block_reason}")
+            return "I cannot analyze this image due to safety guidelines."
+        else:
+            return "Sorry, I couldn't analyze this image. Please try a different image."
+
+    except Exception as e:
+        print(f"Error analyzing image with Gemini API: {e}")
+        return "Sorry, I encountered an error trying to analyze the image. Please try again later."

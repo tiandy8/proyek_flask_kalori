@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">NutriBot Assistant</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Chat Messages -->
+                    <div id="chat-messages" class="mb-4" style="height: 400px; overflow-y: auto;">
+                        <div class="message bot-message">
+                            <div class="message-content">
+                                Hello! I'm your nutrition assistant. You can ask me about food, nutrition, or upload an image of food for analysis.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Image Upload Section -->
+                    <div class="mb-3">
+                        <form id="image-upload-form" class="mb-3">
+                            <div class="input-group">
+                                <input type="file" class="form-control" id="food-image" accept="image/*" required>
+                                <button class="btn btn-primary" type="submit">Analyze Image</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Text Chat Input -->
+                    <form id="chat-form">
+                        <div class="input-group">
+                            <input type="text" id="user-input" class="form-control" placeholder="Ask me about nutrition or food...">
+                            <button class="btn btn-primary" type="submit">Send</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.message {
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 10px;
+    max-width: 80%;
+}
+
+.user-message {
+    background-color: #007bff;
+    color: white;
+    margin-left: auto;
+}
+
+.bot-message {
+    background-color: #f8f9fa;
+    color: #212529;
+    margin-right: auto;
+}
+
+.message-content {
+    word-wrap: break-word;
+}
+
+#chat-messages {
+    padding: 15px;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chatForm = document.getElementById('chat-form');
+    const imageForm = document.getElementById('image-upload-form');
+    const userInput = document.getElementById('user-input');
+    const chatMessages = document.getElementById('chat-messages');
+
+    function addMessage(content, isUser = false) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+        messageDiv.innerHTML = `<div class="message-content">${content}</div>`;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Handle text chat
+    chatForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const message = userInput.value.trim();
+        if (!message) return;
+
+        addMessage(message, true);
+        userInput.value = '';
+
+        try {
+            const response = await fetch('/chatbot_ask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message })
+            });
+            const data = await response.json();
+            addMessage(data.reply);
+        } catch (error) {
+            console.error('Error:', error);
+            addMessage('Sorry, there was an error processing your request.');
+        }
+    });
+
+    // Handle image upload
+    imageForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const imageFile = document.getElementById('food-image').files[0];
+        if (!imageFile) return;
+
+        const formData = new FormData();
+        formData.append('image', imageFile);
+
+        addMessage('Analyzing image...', true);
+
+        try {
+            const response = await fetch('/analyze_food_image', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            if (data.error) {
+                addMessage(`Error: ${data.error}`);
+            } else {
+                addMessage(data.analysis);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            addMessage('Sorry, there was an error analyzing your image.');
+        }
+
+        // Reset the form
+        imageForm.reset();
+    });
+});
+</script>
+{% endblock %} 
