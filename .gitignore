@@ -1,0 +1,7 @@
+# .gitignore
+
+venv/
+.env
+__pycache__/
+*.pyc
+# Add any other files/folders you want Git to ignore

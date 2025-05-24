@@ -100,5 +100,94 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error("Error setting active nav link:", e);
     }
 
+     // --- Chatbot Interaction ---
+    const chatOutput = document.getElementById('chat-output');
+    const chatInput = document.getElementById('chat-input');
+    const sendChatButton = document.getElementById('send-chat');
+    const chatInputForm = document.getElementById('chat-input-form'); // Reference the input area/form
+
+    // Function to add a message to the chat output
+    function addChatMessage(message, sender = 'user') {
+        if (!chatOutput) return;
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('chat-message', sender); // 'user' or 'bot'
+        messageDiv.textContent = message;
+        chatOutput.appendChild(messageDiv);
+        // Scroll to the bottom
+        chatOutput.scrollTop = chatOutput.scrollHeight;
+    }
+
+    // Function to handle sending a message
+    async function sendMessage() {
+        if (!chatInput || !chatOutput) return;
+        const userMessage = chatInput.value.trim();
+
+        if (userMessage === '') {
+            return; // Don't send empty messages
+        }
+
+        // Display user's message immediately
+        addChatMessage(userMessage, 'user');
+        chatInput.value = ''; // Clear input field
+        chatInput.disabled = true; // Disable input while waiting
+        sendChatButton.disabled = true; // Disable button while waiting
+        addChatMessage("NutriBot is thinking...", 'bot thinking'); // Add thinking indicator
+
+
+        try {
+            // Send message to the backend
+            const response = await fetch('/chatbot_ask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // You might need to include CSRF token headers if using Flask-WTF CSRF protection
+                },
+                body: JSON.stringify({ message: userMessage })
+            });
+
+             // Remove thinking message
+             const thinkingMsg = chatOutput.querySelector('.thinking');
+             if(thinkingMsg) thinkingMsg.remove();
+
+
+            if (!response.ok) {
+                // Handle HTTP errors (like 400, 500)
+                console.error('Chatbot request failed:', response.status, response.statusText);
+                const errorData = await response.json().catch(() => ({ reply: 'Sorry, there was a server error.' }));
+                addChatMessage(errorData.reply || 'Sorry, there was a server error.', 'bot error');
+            } else {
+                // Handle successful response
+                const data = await response.json();
+                addChatMessage(data.reply, 'bot');
+            }
+
+        } catch (error) {
+             // Remove thinking message in case of network error etc.
+             const thinkingMsg = chatOutput.querySelector('.thinking');
+             if(thinkingMsg) thinkingMsg.remove();
+
+            console.error('Error sending chat message:', error);
+            addChatMessage('Sorry, I couldn\'t connect to the chatbot service.', 'bot error');
+        } finally {
+             chatInput.disabled = false; // Re-enable input
+             sendChatButton.disabled = false; // Re-enable button
+             chatInput.focus(); // Set focus back to input
+        }
+    }
+
+    // Event listener for the Send button
+    if (sendChatButton) {
+        sendChatButton.addEventListener('click', sendMessage);
+    }
+
+    // Event listener for pressing Enter in the input field
+    if (chatInput) {
+        chatInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                 e.preventDefault(); // Prevent default form submission/newline
+                 sendMessage();
+            }
+        });
+    }
 
 }); // End DOMContentLoaded

@@ -27,16 +27,14 @@
         <div class="card-body">
             <h2 class="card-title">Chat with NutriBot</h2>
             <p class="card-text">Ask our AI assistant about health and nutrition.</p>
-            <div id="chatbox" class="feature-form">
+            <div id="chatbox">
                  <div id="chat-output" class="chat-output-area">
-                     <div class="chat-message bot">Hello! How can I help you with your nutrition today?</div>
+                     <div class="chat-message bot">Hello {{ current_user.username }}! Ask me anything about nutrition or food facts.</div>
                  </div>
-                 <div class="chat-input-area">
-                    <input type="text" id="chat-input" class="form-control" placeholder="Ask something...">
-                    <button id="send-chat" class="btn btn-secondary">Send</button>
-                 </div>
+                 <div class="chat-input-area" id="chat-input-form"> <input type="text" id="chat-input" class="form-control" placeholder="Type your message..." autocomplete="off">
+                    <button id="send-chat" class="btn btn-primary">Send</button> </div>
              </div>
-        </div>
+             </div>
     </div>
 
     <div class="feature-card card">

@@ -575,3 +575,81 @@ a:hover {
   }
    .card { opacity: 1; transform: none; }
 }
+
+#chatbox {
+    margin-top: 1.5rem; /* Space above chat */
+}
+
+.chat-output-area {
+    height: 250px; /* Increased height */
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background-color: var(--secondary-color);
+    font-size: 0.9rem;
+    scroll-behavior: smooth; /* Smooth scroll */
+}
+
+.chat-message {
+    margin-bottom: 0.8rem;
+    padding: 0.6rem 1rem;
+    border-radius: 18px;
+    max-width: 85%;
+    word-wrap: break-word;
+    line-height: 1.5;
+    opacity: 0; /* Start hidden for animation */
+    animation: fadeInMessage 0.4s ease-out forwards; /* Add fade-in */
+}
+/* Stagger animation for messages */
+.chat-message:nth-child(odd) { animation-delay: 0.1s; }
+.chat-message:nth-child(even) { animation-delay: 0.2s; }
+
+
+.chat-message.bot {
+    background-color: #e5e5ea;
+    color: var(--text-color);
+    margin-right: auto; /* Align left */
+    border-bottom-left-radius: 4px;
+}
+
+.chat-message.user {
+    background-color: var(--primary-color);
+    color: white;
+    margin-left: auto; /* Align right */
+    border-bottom-right-radius: 4px;
+}
+
+/* Styling for thinking/error messages */
+.chat-message.bot_thinking,
+.chat-message.error {
+    font-style: italic;
+    color: var(--text-secondary-color);
+    background-color: transparent;
+    text-align: center;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+.chat-message.error {
+    color: var(--danger-color);
+}
+
+
+.chat-input-area {
+    display: flex;
+    gap: 0.75rem; /* Increased gap */
+}
+.chat-input-area input {
+    flex-grow: 1;
+}
+.chat-input-area button {
+   flex-shrink: 0; /* Prevent button from shrinking */
+}
+
+/* Keyframe for message fade-in */
+@keyframes fadeInMessage {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}

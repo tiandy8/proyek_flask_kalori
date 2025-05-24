@@ -7,6 +7,9 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import redirect, url_for, flash
+from flask import jsonify # Import jsonify
+from chatbot import get_gemini_response # Import your chatbot function
+
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -170,6 +173,29 @@ def logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('index'))
 
+@app.route('/chatbot_ask', methods=['POST'])
+@login_required # Only logged-in users can use the chatbot
+def chatbot_ask():
+    if not request.is_json:
+        return jsonify({"error": "Request must be JSON"}), 400
+
+    data = request.get_json()
+    user_message = data.get('message')
+
+    if not user_message:
+        return jsonify({"error": "Missing 'message' in request body"}), 400
+
+    # --- DEBUG ---
+    print(f"Received message for chatbot: {user_message}")
+    # --- END DEBUG ---
+
+    bot_response = get_gemini_response(user_message)
+
+    # --- DEBUG ---
+    print(f"Sending response from chatbot: {bot_response}")
+     # --- END DEBUG ---
+
+    return jsonify({'reply': bot_response})
 
 if __name__ == '__main__':
     app.run(debug=True)
