@@ -1,19 +1,296 @@
 {% extends "base.html" %}
 
 {% block content %}
-<section class="hero-section">
-    <div class="hero-content">
-        <h1 class="hero-title">Welcome to NutriTrack ✨</h1>
-        <p class="hero-subtitle">Effortlessly track your calorie intake and food ingredients.</p>
-        <p class="hero-description">Simply upload a photo of your meal, and let us handle the analysis.</p>
-        {% if not current_user.is_authenticated %}
-        <div class="hero-actions">
-            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">Get Started Free</a>
-            <a href="{{ url_for('login') }}" class="btn btn-secondary btn-lg">Log In</a>
+<div class="hero-section">
+    <div class="container">
+        <h1 class="hero-title">Welcome to Kalora ✨</h1>
+        <p class="hero-subtitle">Your personal nutrition companion</p>
+        <div class="hero-cta">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('dashboard') }}" class="btn btn-cal-primary">Go to Dashboard</a>
+            {% else %}
+                <a href="{{ url_for('register') }}" class="btn btn-cal-primary">Get Started</a>
+                <a href="{{ url_for('login') }}" class="btn btn-cal-outline">Login</a>
+            {% endif %}
         </div>
-        {% else %}
-        <p class="hero-description">Go to your <a href="{{ url_for('dashboard') }}" class="link-styled">Dashboard</a> to start tracking.</p>
-        {% endif %}
     </div>
-     </section>
+</div>
+
+<div class="features-section">
+    <div class="container">
+        <h2 class="section-title">Why Choose Kalora?</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Track Your Meals</h3>
+                <p>Easily log and track your daily meals and nutrition intake with our intuitive interface</p>
+                <div class="feature-details">
+                    <ul>
+                        <li>Daily calorie tracking</li>
+                        <li>Nutrition breakdown</li>
+                        <li>Meal history</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📷</div>
+                <h3>Analyze Food Images</h3>
+                <p>Upload food photos to get instant nutritional information powered by AI</p>
+                <div class="feature-details">
+                    <ul>
+                        <li>Instant calorie estimation</li>
+                        <li>Food recognition</li>
+                        <li>Portion analysis</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💬</div>
+                <h3>AI Nutrition Assistant</h3>
+                <p>Get personalized nutrition advice from our advanced AI chatbot</p>
+                <div class="feature-details">
+                    <ul>
+                        <li>Dietary recommendations</li>
+                        <li>Meal planning help</li>
+                        <li>Nutritional guidance</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: (--background);
+    padding: 2rem;
+}
+
+.auth-card {
+    background: var(--cal-surface);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px var(--cal-shadow);
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 400px;
+}
+
+.auth-title {
+    color: var(--cal-text);
+    text-align: center;
+    margin-bottom: 2rem;
+    font-weight: 600;
+}
+
+.form-control {
+    background-color: var(--cal-surface);
+    border: 1px solid var(--cal-border);
+    color: var(--cal-text);
+}
+
+.form-control:focus {
+    border-color: var(--cal-primary);
+    box-shadow: 0 0 0 3px rgba(122, 115, 209, 0.1);
+}
+
+.form-label {
+    color: var(--cal-text);
+    font-weight: 500;
+}
+
+.btn-cal-secondary {
+    background: rgba(10, 10, 10, 0.7);
+    color: white;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(79, 25, 214, 0.3);
+            border-radius: 12px;
+    font-weight: 500;
+    transition: all 0.2s ease
+}
+
+.btn-cal-primary {
+    background-color: var(--cal-primary);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-cal-primary:hover {
+    background-color: #6a63b8;
+    transform: translateY(-2px);
+}
+
+.auth-switch {
+    text-align: center;
+    margin-top: 1.5rem;
+    color: var(--cal-text-secondary);
+}
+
+.link-styled {
+    color: var(--cal-primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.link-styled:hover {
+    color: #6a63b8;
+}
+
+.form-check-label {
+    color: var(--cal-text-secondary);
+}
+
+.hero-section {
+    padding: 6rem 0;
+    text-align: center;
+    background: linear-gradient(135deg, var(--cal-background) 0%, #1a1a1a 100%);
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    background: linear-gradient(45deg, var(--cal-primary), var(--cal-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    color: var(--cal-text-secondary);
+    margin-bottom: 2rem;
+}
+
+.hero-cta {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.features-section {
+    padding: 6rem 0;
+    background: linear-gradient(135deg, #1a1a1a 0%, var(--cal-background) 100%);
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 3rem;
+    color: var(--cal-text);
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    padding: 0 1rem;
+}
+
+.feature-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+}
+
+.feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--cal-primary), var(--cal-secondary));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.feature-card:hover::before {
+    opacity: 1;
+}
+
+.feature-icon {
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+}
+
+.feature-card h3 {
+    color: var(--cal-text);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.feature-card p {
+    color: var(--cal-text-secondary);
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.feature-details {
+    text-align: left;
+    margin-top: 1.5rem;
+}
+
+.feature-details ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.feature-details li {
+    color: var(--cal-text-secondary);
+    margin-bottom: 0.5rem;
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.feature-details li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--cal-primary);
+}
+
+@media (max-width: 992px) {
+    .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .section-title {
+        font-size: 2rem;
+    }
+}
+</style>
 {% endblock %}

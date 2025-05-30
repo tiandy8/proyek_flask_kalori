@@ -85,10 +85,9 @@ def analyze_food_image(image_data):
         return "Sorry, the image analysis is not configured correctly due to an API key issue."
 
     try:
-        # Initialize the Gemini Pro Vision model
-        model = genai.GenerativeModel('gemini-pro-vision')
+        # Use the new Gemini 1.5 Pro model for vision
+        model = genai.GenerativeModel('gemini-1.5-pro')
         
-        # Create the prompt for food analysis
         prompt = """Analyze this food image and provide:
 1. A description of the food
 2. Estimated calories (if possible to identify)
@@ -97,8 +96,16 @@ def analyze_food_image(image_data):
 
 Please be specific but acknowledge that calorie estimates are approximate."""
 
-        # Generate response from the image
-        response = model.generate_content([prompt, image_data])
+        # Convert image data to PIL Image if it's bytes
+        if isinstance(image_data, bytes):
+            from PIL import Image
+            import io
+            image = Image.open(io.BytesIO(image_data))
+        else:
+            image = image_data
+
+        # Gemini 1.5 Pro expects a list: [prompt, image]
+        response = model.generate_content([prompt, image])
         
         if response.parts:
             return response.text
@@ -110,4 +117,4 @@ Please be specific but acknowledge that calorie estimates are approximate."""
 
     except Exception as e:
         print(f"Error analyzing image with Gemini API: {e}")
-        return "Sorry, I encountered an error trying to analyze the image. Please try again later."
+        return f"Sorry, I encountered an error trying to analyze the image: {str(e)}"

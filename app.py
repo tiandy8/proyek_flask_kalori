@@ -1,20 +1,27 @@
 # Corrected app.py - PLEASE USE THIS EXACT CODE
 
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
+from datetime import datetime, timedelta
 from chatbot import get_gemini_response, analyze_food_image
 
 app = Flask(__name__)
 app.config.from_object(Config)
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)  # Session lasts 7 days
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
 db = SQLAlchemy(app)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+login_manager.login_message = 'Please log in to access this page.'
+login_manager.login_message_category = 'info'
 
 # User Model
 class User(UserMixin, db.Model):
@@ -60,7 +67,10 @@ class FoodImage(db.Model):
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    try:
+        return User.query.get(int(user_id))
+    except:
+        return None
 
 @app.route('/')
 def index():
@@ -69,17 +79,27 @@ def index():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    # Get user's meals for today
-    today = datetime.utcnow().date()
-    meals = Meal.query.filter_by(user_id=current_user.id, date=today).all()
-    
-    # Get user's food images
-    food_images = FoodImage.query.filter_by(user_id=current_user.id).order_by(FoodImage.upload_time.desc()).limit(5).all()
-    
-    return render_template('dashboard.html', 
-                         title='Dashboard',
-                         meals=meals,
-                         food_images=food_images)
+    try:
+        print(f"Dashboard accessed by user: {current_user.username}")
+        print(f"Session data: {dict(session)}")
+        
+        # Get user's meals for today
+        today = datetime.utcnow().date()
+        meals = Meal.query.filter_by(user_id=current_user.id, date=today).all()
+        print(f"Found {len(meals)} meals for today")
+        
+        # Get user's food images
+        food_images = FoodImage.query.filter_by(user_id=current_user.id).order_by(FoodImage.upload_time.desc()).limit(5).all()
+        print(f"Found {len(food_images)} food images")
+        
+        return render_template('dashboard.html', 
+                             title='Dashboard',
+                             meals=meals,
+                             food_images=food_images)
+    except Exception as e:
+        print(f"Error in dashboard: {str(e)}")
+        flash('An error occurred while loading the dashboard.', 'danger')
+        return redirect(url_for('index'))
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -117,19 +137,43 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('index'))
+        print("User already authenticated, redirecting to dashboard")
+        return redirect(url_for('dashboard'))
+        
     if request.method == 'POST':
         username = request.form['username'].strip()
         password = request.form['password']
-
+        remember = request.form.get('remember', False)
+        
+        print(f"Login attempt - Username: {username}, Remember: {remember}")
+        
         user = User.query.filter_by(username=username).first()
-        if user and user.check_password(password):
-            login_user(user, remember=request.form.get('remember'))
-            next_page = request.args.get('next')
-            return redirect(next_page or url_for('dashboard'))
+        if user:
+            print(f"User found in database: {user.username}")
+            if user.check_password(password):
+                print("Password verification successful")
+                try:
+                    login_user(user, remember=remember)
+                    session.permanent = True  # Make the session permanent
+                    print(f"User logged in successfully: {user.username}")
+                    print(f"Session data: {dict(session)}")
+                    
+                    next_page = request.args.get('next')
+                    if not next_page or not next_page.startswith('/'):
+                        next_page = url_for('dashboard')
+                    
+                    print(f"Redirecting to: {next_page}")
+                    return redirect(next_page)
+                except Exception as e:
+                    print(f"Error during login: {str(e)}")
+                    flash('An error occurred during login. Please try again.', 'danger')
+            else:
+                print("Password verification failed")
+                flash('Invalid password.', 'danger')
         else:
-            flash('Login Failed. Check username and password.', 'danger')
-
+            print(f"User not found: {username}")
+            flash('Username not found.', 'danger')
+    
     return render_template('login.html', title='Login')
 
 @app.route('/logout')
@@ -173,8 +217,15 @@ def analyze_food_image_route():
         # Read the image file
         image_data = image_file.read()
         
+        # Check if the file is actually an image
+        if not image_file.content_type.startswith('image/'):
+            return jsonify({"error": "File must be an image"}), 400
+        
         # Analyze the image
         analysis_result = analyze_food_image(image_data)
+        
+        if analysis_result.startswith("Sorry"):
+            return jsonify({"error": analysis_result}), 400
         
         # Save the image analysis to database
         new_image = FoodImage(
@@ -185,10 +236,14 @@ def analyze_food_image_route():
         db.session.add(new_image)
         db.session.commit()
         
-        return jsonify({'analysis': analysis_result})
+        return jsonify({
+            'analysis': analysis_result,
+            'message': 'Image analyzed successfully'
+        })
     except Exception as e:
         print(f"Error processing image: {e}")
-        return jsonify({"error": "Error processing image"}), 500
+        db.session.rollback()
+        return jsonify({"error": f"Error processing image: {str(e)}"}), 500
 
 @app.route('/test_gemini')
 @login_required
@@ -215,6 +270,22 @@ def test_gemini():
             'status': 'error',
             'message': f'Error testing Gemini API: {str(e)}'
         }), 500
+
+@app.route('/track-meal')
+@login_required
+def track_meal():
+    # Get user's meals and food images
+    meals = Meal.query.filter_by(user_id=current_user.id).order_by(Meal.date.desc()).all()
+    food_images = FoodImage.query.filter_by(user_id=current_user.id).order_by(FoodImage.upload_time.desc()).all()
+    return render_template('track_meal.html', meals=meals, food_images=food_images)
+
+@app.route('/analyze-food')
+@login_required
+def analyze_food():
+    # Get user's food images and meals
+    food_images = FoodImage.query.filter_by(user_id=current_user.id).order_by(FoodImage.upload_time.desc()).all()
+    meals = Meal.query.filter_by(user_id=current_user.id).order_by(Meal.date.desc()).all()
+    return render_template('analyze_food.html', food_images=food_images, meals=meals)
 
 if __name__ == '__main__':
     with app.app_context():

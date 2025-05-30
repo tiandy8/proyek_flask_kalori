@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="auth-container">
-    <div class="auth-card">
+    <div class="auth-card card glass">
         <h2 class="auth-title">Log In to Your Account</h2>
         <form action="{{ url_for('login') }}" method="post" novalidate class="auth-form">
             <div class="form-group">
@@ -18,10 +18,111 @@
                 <label for="remember" class="form-check-label">Remember me</label>
             </div>
             <div class="form-group">
-                <button type="submit" class="btn btn-primary btn-block">Log In</button>
+                <button type="submit" class="btn btn-cal-primary w-100">Log In</button>
             </div>
         </form>
         <p class="auth-switch">Don't have an account? <a href="{{ url_for('register') }}" class="link-styled">Sign up</a></p>
     </div>
 </div>
+{% endblock %}
+
+{% block styles %}
+<style>
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--cal-background);
+    padding: 2rem;
+}
+
+.auth-card {
+    background: rgba(10, 10, 10, 0.7);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px var(--cal-shadow);
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 400px;
+    border: 1px solid rgba(79, 25, 214, 0.3);
+}
+
+.auth-title {
+    color: var(--cal-text);
+    text-align: center;
+    margin-bottom: 2rem;
+    font-weight: 600;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-control {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(79, 25, 214, 0.3);
+    color: var(--cal-text);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+}
+
+.form-control:focus {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: var(--cal-primary);
+    box-shadow: 0 0 0 3px rgba(79, 25, 214, 0.2);
+    color: var(--cal-text);
+}
+
+.form-label {
+    color: var(--cal-text);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.btn-cal-primary {
+    background-color: var(--cal-primary);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.btn-cal-primary:hover {
+    background-color: #5a4db3;
+    transform: translateY(-2px);
+}
+
+.auth-switch {
+    text-align: center;
+    margin-top: 1.5rem;
+    color: var(--cal-text-secondary);
+}
+
+.link-styled {
+    color: var(--cal-primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.link-styled:hover {
+    color: #5a4db3;
+}
+
+.form-check-label {
+    color: var(--cal-text-secondary);
+}
+
+.form-check-input {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(79, 25, 214, 0.3);
+}
+
+.form-check-input:checked {
+    background-color: var(--cal-primary);
+    border-color: var(--cal-primary);
+}
+</style>
 {% endblock %}

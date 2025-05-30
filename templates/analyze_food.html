@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Greeting Card -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card calai-greeting-card text-white">
+                <div class="card-body">
+                    <h2 class="card-title mb-1">Analyze Your Food, {{ current_user.username }}!</h2>
+                    <p class="card-text">Upload a photo to get instant calorie and nutrition analysis, or log your meal below.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row g-4">
+        <!-- Scan Your Meal -->
+        <div class="col-lg-6 col-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Scan Your Meal</h5>
+                </div>
+                <div class="card-body">
+                    <form id="imageUploadForm" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="foodImage" class="form-label">Select Image</label>
+                            <input type="file" class="form-control" id="foodImage" name="image" accept="image/*" required>
+                        </div>
+                        <div id="imagePreview" class="mb-3 d-none">
+                            <img src="" alt="Preview" class="img-fluid rounded">
+                        </div>
+                        <div id="uploadStatus" class="alert d-none"></div>
+                        <div id="loadingSpinner" class="spinner d-none"></div>
+                        <button type="button" class="btn calai-btn-gradient w-100" id="uploadButton">Analyze Image</button>
+                    </form>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Food Analysis</h5>
+                </div>
+                <div class="card-body">
+                    {% if food_images %}
+                        <div class="list-group">
+                            {% for image in food_images %}
+                            <div class="list-group-item">
+                                <h6 class="mb-1">{{ image.filename }}</h6>
+                                <p class="mb-1 text-muted">{{ image.upload_time.strftime('%Y-%m-%d %H:%M') }}</p>
+                                <p class="mb-1">{{ image.analysis_result[:100] }}...</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No food images analyzed yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <!-- Log Meal -->
+        <div class="col-lg-6 col-12">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Log Meal</h5>
+                </div>
+                <div class="card-body">
+                    <form id="mealLogForm">
+                        <div class="mb-3">
+                            <label for="mealName" class="form-label">Meal Name</label>
+                            <input type="text" class="form-control" id="mealName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="mealDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="mealDescription" rows="2"></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="calories" class="form-label">Calories</label>
+                                <input type="number" class="form-control" id="calories">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="protein" class="form-label">Protein (g)</label>
+                                <input type="number" class="form-control" id="protein">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="carbs" class="form-label">Carbs (g)</label>
+                                <input type="number" class="form-control" id="carbs">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="fat" class="form-label">Fat (g)</label>
+                                <input type="number" class="form-control" id="fat">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn calai-btn-gradient w-100">Save Meal</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+.calai-greeting-card {
+    background: linear-gradient(90deg, #6C63FF 60%, #00C9A7 100%) !important;
+    color: #fff !important;
+}
+.calai-btn-gradient {
+    background: linear-gradient(90deg, #6C63FF 60%, #00C9A7 100%) !important;
+    color: #fff !important;
+    border: none;
+}
+.calai-btn-gradient:hover {
+    background: linear-gradient(90deg, #00C9A7 60%, #6C63FF 100%) !important;
+    color: #fff !important;
+}
+</style>
+{% endblock %} 

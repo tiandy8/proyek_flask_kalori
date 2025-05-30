@@ -1,23 +1,19 @@
-/* static/style.css (Revised Modern Version) */
+/* static/style.css (Cal AI Theme Version) */
 
 /* Import Font */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* CSS Variables - Modern Tech Palette */
+/* Cal AI Theme Colors */
 :root {
-    --primary-color: #007aff;
-    --secondary-color: #f2f2f7; /* Slightly different light gray */
-    --accent-color: #34c759;
-    --text-color: #1c1c1e; /* Slightly softer black */
-    --text-secondary-color: #636366; /* Slightly adjusted gray */
-    --bg-color: #ffffff;
-    --card-bg: #ffffff;
-    --border-color: #d6d6d6; /* Adjusted border color */
-    --input-bg: #f2f2f7; /* Input background same as secondary */
-    --success-color: var(--accent-color);
-    --warning-color: #ff9500;
-    --danger-color: #ff3b30;
-    --info-color: #007aff;
+  --cal-primary: #7A73D1;
+  --cal-secondary: #00C9A7;
+  --cal-accent: #FFD166;
+  --cal-background: #211C84;
+  --cal-surface: #FFFFFF;
+  --cal-text: #22223B;
+  --cal-text-secondary: #6B7280;
+  --cal-border: #E5E7EB;
+  --cal-shadow: rgba(108, 99, 255, 0.08);
 
     --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     --border-radius-sm: 5px; /* Slightly increased radius */
@@ -42,18 +38,20 @@ html {
 }
 
 body {
-    font-family: var(--font-family-sans);
-    background-color: var(--secondary-color);
-    color: var(--text-color);
-    line-height: 1.65; /* Increased line height */
+  background-color: var(--cal-background);
+  color: var(--cal-text);
+  font-family: 'Inter', sans-serif;
+  line-height: 1.6;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
-
-/* Container Utility */
+.btn-cal-primary{
+    background-color: #7A73D1; /* Primary button color */
+}
+    /* Container Utility */
 .container {
     width: 100%;
     max-width: 1180px; /* Consistent container width */
@@ -94,6 +92,9 @@ a:hover {
 }
 
 .navbar {
+  background: var(--cal-surface);
+  border-bottom: 1px solid var(--cal-border);
+  padding: 1rem 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -124,6 +125,9 @@ a:hover {
 }
 
 .nav-link {
+  color: var(--cal-text);
+  font-weight: 500;
+  transition: color 0.2s ease;
     text-decoration: none;
     color: var(--text-secondary-color);
     font-weight: 500;
@@ -134,6 +138,7 @@ a:hover {
 }
 
 .nav-link:hover {
+  color: var(--cal-primary);
     color: var(--text-color);
     background-color: var(--input-bg); /* Use input background for subtle hover */
     text-decoration: none;
@@ -150,18 +155,12 @@ a:hover {
 
 /* Buttons Styling */
 .btn {
-    display: inline-block;
-    padding: 0.75rem 1.6rem; /* Adjusted padding */
-    border: 1px solid transparent;
-    border-radius: var(--border-radius-md);
-    font-weight: 600;
-    font-size: 0.9rem;
-    text-decoration: none;
-    cursor: pointer;
-    transition: all var(--transition-speed) ease-out;
-    text-align: center;
-    user-select: none;
-    line-height: 1.5; /* Consistent line height */
+  border-radius: 12px;
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
 }
 .btn:disabled {
     opacity: 0.5; /* Make disabled state more obvious */
@@ -254,20 +253,16 @@ a:hover {
 }
 
 .form-control {
-    width: 100%;
-    padding: 0.8rem 1rem;
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-sm);
-    font-size: 0.95rem;
-    background-color: var(--bg-color); /* White background for inputs */
-    transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
-    line-height: 1.5;
+  border: 1px solid var(--cal-border);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  background: var(--cal-background);
+  transition: all 0.2s ease;
 }
 .form-control:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    background-color: var(--bg-color);
-    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
+  border-color: var(--cal-primary);
+  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+  background: var(--cal-surface);
 }
 
 .form-check {
@@ -303,14 +298,24 @@ a:hover {
 }
 
 .alert {
-    padding: 0.9rem 1.25rem;
-    margin-bottom: 1rem;
-    border-radius: var(--border-radius-sm);
-    border: 1px solid transparent;
-    font-weight: 500;
-    font-size: 0.9rem;
-    position: relative;
+  border: none;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  animation: slideIn 0.3s ease;
 }
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .alert-success { background-color: rgba(46, 204, 113, 0.1); border-color: rgba(46, 204, 113, 0.3); color: #1a7f45; }
 .alert-warning { background-color: rgba(255, 149, 0, 0.1); border-color: rgba(255, 149, 0, 0.3); color: #b36b00; }
 .alert-danger { background-color: rgba(255, 59, 48, 0.1); border-color: rgba(255, 59, 48, 0.3); color: #c82333; }
@@ -378,23 +383,17 @@ a:hover {
 }
 
 .card {
-    background-color: var(--card-bg);
-    border-radius: var(--border-radius-md);
-    border: 1px solid var(--border-color);
-    overflow: hidden;
-    transition: box-shadow var(--transition-speed) ease, transform var(--transition-speed) ease;
-    /* Scroll reveal animation classes (applied by JS) */
-    opacity: 0;
-    transform: translateY(15px);
-}
-.card.visible {
-    opacity: 1;
-    transform: translateY(0);
-    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+  background: var(--cal-surface);
+  border: 1px solid var(--cal-border);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px var(--cal-shadow);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+    animation: fadeIn 0.3s ease;
 }
 .card:hover {
-    /* box-shadow: var(--shadow-md); */ /* Optional: subtle shadow on hover */
-    transform: translateY(-4px); /* Slightly more lift */
+  transform: translateY(-4px);
+    box-shadow: 0 8px 32px var(--cal-shadow);
 }
 /* Staggered animation delays (applied by JS potentially, or keep in CSS) */
 .dashboard-features .card:nth-child(1) { transition-delay: 0.05s; }
@@ -526,7 +525,20 @@ a:hover {
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes fadeInScale { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
 @keyframes slideDownFadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes cal-spin {
+  to { transform: rotate(360deg); }
+}
 
+/* Loading Animation */
+.cal-loading {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--cal-border);
+    border-top-color: var(--cal-primary);
+    border-radius: 50%;
+    animation: cal-spin 0.8s linear infinite;
+    display: inline-block;
+}
 
 /* Responsive Design */
 @media (max-width: 768px) {

@@ -11,14 +11,14 @@ load_dotenv(os.path.join(basedir, '.env'))
 
 class Config:
     # Flask configuration
-    SECRET_KEY = os.getenv('FLASK_SECRET_KEY', 'your-secret-key-here')
+    SECRET_KEY = os.getenv('FLASK_SECRET_KEY', 'dev')
     
-    # Database configuration
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'mysql+mysqlconnector://root:@localhost/calora_db?charset=utf8mb4')
+    # Database configuration - Using SQLite with absolute path
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', f'sqlite:///{os.path.join(basedir, "kalora.db")}')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    
+
     # Gemini API configuration
-    GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', 'your-gemini-api-key-here')
+    GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 
     # Optional check for API key
     if not GEMINI_API_KEY:

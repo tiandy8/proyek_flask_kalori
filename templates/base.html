@@ -4,33 +4,363 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <title>{{ title }} - NutriTrack</title>
+    <title>{{ title }} - Kalora</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥗</text></svg>">
     <script src="{{ url_for('static', filename='script.js') }}" defer></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+
+.cal-alert {
+            background-color: rgba(17, 16, 16, 0.95);
+            color: var(--cal-text);
+            border: 1px solid rgba(79, 25, 214, 0.3);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            min-width: 300px;
+            max-width: 500px;
+            padding: 1rem 1.5rem;
+            backdrop-filter: blur(10px);
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+        }
+
+        .cal-alert.show {
+            transform: translateX(0);
+        }
+
+        .cal-alert.alert-danger {
+            border-left: 4px solid #dc3545;
+            background-color: rgba(17, 16, 16, 0.95);
+        }
+
+        .cal-alert.alert-success {
+            border-left: 4px solid #28a745;
+            background-color: rgba(17, 16, 16, 0.95);
+        }
+
+        .cal-alert.alert-warning {
+            border-left: 4px solid #ffc107;
+            background-color: rgba(17, 16, 16, 0.95);
+        }
+
+        .cal-alert.alert-info {
+            border-left: 4px solid #17a2b8;
+            background-color: rgba(17, 16, 16, 0.95);
+        }
+
+        .flash-messages {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        :root {
+            --cal-primary: #4F19D6;
+            --cal-secondary: #00C9A7;
+            --cal-accent: #FFD166;
+            --cal-background: #0A0A0A;
+            --cal-surface: #FFFFFF;
+            --cal-text: #FFFFFF;
+            --cal-text-secondary: #B8B8B8;
+            --cal-border: #2A2A2A;
+            --cal-shadow: rgba(0, 0, 0, 0.2);
+        }
+
+        body {
+            background-color: var(--cal-background);
+            color: var(--cal-text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-content {
+            background-color: var(--cal-background);
+            flex: 1;
+            padding: 2rem 0;
+        }
+
+        .cal-alert {
+            background-color: var(--cal-surface);
+            color: var(--cal-text);
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px var(--cal-shadow);
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            min-width: 300px;
+            max-width: 500px;
+        }
+
+        #page-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 10, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .cal-loading {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--cal-primary);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Form Input Styles */
+        .form-control {
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(79, 25, 214, 0.3) !important;
+            color: var(--cal-text) !important;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            border-color: var(--cal-primary) !important;
+            box-shadow: 0 0 0 3px rgba(79, 25, 214, 0.2) !important;
+            color: var(--cal-text) !important;
+        }
+
+        .form-control::placeholder {
+            color: var(--cal-text-secondary);
+            opacity: 0.7;
+        }
+
+        .form-label {
+            color: var(--cal-text);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Modern Card Styles */
+        .card {
+            background-color: var(--cal-background);
+            border: 1px solid rgba(79, 25, 214, 0.2);
+            border-radius: 16px;
+            box-shadow: 
+                0 4px 6px rgba(0, 0, 0, 0.1),
+                0 1px 3px rgba(0, 0, 0, 0.08),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(79, 25, 214, 0.5),
+                transparent
+            );
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.2),
+                transparent
+            );
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 
+                0 8px 12px rgba(0, 0, 0, 0.15),
+                0 2px 4px rgba(0, 0, 0, 0.1),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+        }
+
+        .card-body {
+            padding: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-title {
+            color: var(--cal-text);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .card-text {
+            color: var(--cal-text-secondary);
+        }
+
+        /* Glass effect for specific cards */
+        .card.glass {
+            background: rgba(10, 10, 10, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(79, 25, 214, 0.3);
+        }
+
+        /* Gradient border effect */
+        .card.gradient-border {
+            position: relative;
+            background: var(--cal-background);
+            border: none;
+        }
+
+        .card.gradient-border::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            right: -1px;
+            bottom: -1px;
+            background: linear-gradient(45deg, var(--cal-primary), transparent, var(--cal-primary));
+            border-radius: 16px;
+            z-index: -1;
+            animation: borderRotate 4s linear infinite;
+        }
+
+        @keyframes borderRotate {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+    {% block styles %}{% endblock %}
 </head>
-<body>
+<body class="cal-theme">
     {% include '_header.html' %}
 
-    <main class="main-content container">
+    <main class="main-content container-fluid">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <div class="flash-messages">
                     {% for category, message in messages %}
-                        {% set alert_class = 'alert-' + category if category in ['success', 'warning', 'danger', 'info'] else 'alert-info' %}
-                        <div class="alert {{ alert_class }}">{{ message }}</div>
+                        <div class="alert cal-alert alert-{{ category }}">
+                            <div class="d-flex align-items-center">
+                                {% if category == 'danger' %}
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                {% elif category == 'success' %}
+                                    <i class="fas fa-check-circle me-2"></i>
+                                {% elif category == 'warning' %}
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                {% elif category == 'info' %}
+                                    <i class="fas fa-info-circle me-2"></i>
+                                {% endif %}
+                                <span>{{ message }}</span>
+                            </div>
+                        </div>
                     {% endfor %}
                 </div>
             {% endif %}
         {% endwith %}
 
+        <div id="page-loader" class="d-none">
+            <div class="cal-loading"></div>
+        </div>
+        
         {% block content %}
         {% endblock %}
     </main>
 
     {% include '_footer.html' %}
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://kit.fontawesome.com/your-font-awesome-kit.js" crossorigin="anonymous"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const pageLoader = document.getElementById('page-loader');
+            
+            // Show flash messages with animation
+            document.querySelectorAll('.cal-alert').forEach(alert => {
+                setTimeout(() => {
+                    alert.classList.add('show');
+                }, 100);
+
+                // Auto-hide alerts after 5 seconds
+                setTimeout(() => {
+                    alert.classList.remove('show');
+                    setTimeout(() => alert.remove(), 300);
+                }, 5000);
+            });
+
+            // Show loader before page transitions
+            document.querySelectorAll('a:not([target="_blank"])').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    if (!link.classList.contains('no-loader')) {
+                        e.preventDefault();
+                        pageLoader.classList.remove('d-none');
+                        setTimeout(() => {
+                            window.location.href = link.href;
+                        }, 100);
+                    }
+                });
+            });
+
+            // Handle form submissions
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', () => {
+                    const submitBtn = form.querySelector('[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<span class="cal-loading me-2"></span> Processing...';
+                    }
+                });
+            });
+
+            // Add loading spinner to buttons when clicked
+            document.querySelectorAll('.btn:not([type="submit"])').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (!this.disabled && !this.classList.contains('no-loader')) {
+                        const originalText = this.innerHTML;
+                        this.disabled = true;
+                        this.innerHTML = '<span class="cal-loading me-2"></span> Processing...';
+                        setTimeout(() => {
+                            this.disabled = false;
+                            this.innerHTML = originalText;
+                        }, 2000);
+                    }
+                });
+            });
+        });
+    </script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>
