@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card glass">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Food Entry Details</h4>
+                </div>
+                <div class="card-body">
+                    {% if entry.image_filename %}
+                        <div class="mb-3 text-center">
+                            <img src="{{ url_for('static', filename='uploads/' ~ entry.image_filename) }}" alt="Food Image" class="img-fluid rounded" style="max-height:300px;">
+                        </div>
+                    {% endif %}
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><strong>Name:</strong> {{ entry.name }}</li>
+                        <li class="list-group-item"><strong>Calories:</strong> {{ "%.0f"|format(entry.calories or 0) }} kcal</li>
+                        <li class="list-group-item"><strong>Protein:</strong> {{ "%.1f"|format(entry.protein or 0) }}g</li>
+                        <li class="list-group-item"><strong>Carbs:</strong> {{ "%.1f"|format(entry.carbs or 0) }}g</li>
+                        <li class="list-group-item"><strong>Fat:</strong> {{ "%.1f"|format(entry.fat or 0) }}g</li>
+                        <li class="list-group-item"><strong>Date:</strong> {{ entry.date.strftime('%Y-%m-%d %H:%M') }}</li>
+                        {% if entry.description %}
+                        <li class="list-group-item"><strong>Description:</strong> {{ entry.description }}</li>
+                        {% endif %}
+                        {% if entry.image_analysis %}
+                        <li class="list-group-item"><strong>Raw Analysis:</strong> <pre>{{ entry.image_analysis }}</pre></li>
+                        {% endif %}
+                    </ul>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary mt-3">Back to Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -7,10 +7,16 @@
             <div class="card glass">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h4 class="mb-0">Chat with NutriBot</h4>
-                    <span class="badge bg-light text-primary">AI Nutrition Assistant</span>
+                    <div class="d-flex align-items-center">
+                        <button id="clear-history" class="btn btn-sm btn-light me-2" title="Clear chat history">
+                            <i class="fas fa-trash text-primary">Clear Message</i>
+                        </button>
+                        <span class="badge bg-light text-primary">AI Nutrition Assistant</span>
+                    </div>
                 </div>
                 <div class="card-body d-flex flex-column">
                     <div id="chat-messages" class="chat-messages mb-3 flex-grow-1">
+                        {% if not chat_history %}
                         <div class="message bot-message">
                             <div class="message-content">
                                 Hello! I'm your nutrition assistant. You can ask me about:
@@ -22,6 +28,20 @@
                                 </ul>
                             </div>
                         </div>
+                        {% else %}
+                            {% for message in chat_history %}
+                            <div class="message {{ 'bot-message' if message.is_bot else 'user-message' }}" data-message-id="{{ message.id }}">
+                                <div class="message-content markdown-content">
+                                    {% if message.is_bot %}
+                                        {{ message.message|safe }}
+                                    {% else %}
+                                        {{ message.message }}
+                                    {% endif %}
+                                </div>
+                                <small class="message-timestamp">{{ message.timestamp }}</small>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
                     </div>
                     <form id="chat-form" class="chat-form">
                         <div class="input-group">
@@ -57,6 +77,43 @@
     padding: 0.8rem 1.2rem;
     border-radius: 12px;
     line-height: 1.5;
+}
+
+.message-timestamp {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--cal-text-secondary);
+    margin-top: 0.25rem;
+    margin-left: 0.5rem;
+}
+
+/* Add styles for Markdown content */
+.markdown-content p {
+    margin-bottom: 0.5rem;
+}
+
+.markdown-content ul, .markdown-content ol {
+    margin-left: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.markdown-content li {
+    margin-bottom: 0.25rem;
+}
+
+.markdown-content strong {
+    font-weight: 600;
+}
+
+.markdown-content em {
+    font-style: italic;
+}
+
+.markdown-content code {
+    background: rgba(0, 0, 0, 0.1);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-family: monospace;
 }
 
 .bot-message {
@@ -123,6 +180,17 @@
     transform: none;
 }
 
+#clear-history {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+}
+
+#clear-history:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -175,12 +243,15 @@
 {% endblock %}
 
 {% block scripts %}
+<!-- Add marked.js for Markdown parsing -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const chatForm = document.getElementById('chat-form');
     const userInput = document.getElementById('user-input');
     const chatMessages = document.getElementById('chat-messages');
     const sendButton = document.getElementById('send-button');
+    const clearHistoryButton = document.getElementById('clear-history');
 
     // Function to update button state based on input
     function updateButtonState() {
@@ -191,13 +262,48 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add input event listener to enable/disable button
     userInput.addEventListener('input', updateButtonState);
 
-    function addMessage(content, isUser = false) {
+    // Function to format message content with Markdown
+    function formatMessageContent(content, isBot) {
+        if (isBot) {
+            return marked.parse(content);
+        }
+        return content;
+    }
+
+    function addMessage(content, isUser = false, messageId = null) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
-        messageDiv.innerHTML = `<div class="message-content">${content}</div>`;
+        if (messageId) {
+            messageDiv.dataset.messageId = messageId;
+        }
+        
+        const messageContent = document.createElement('div');
+        messageContent.className = 'message-content markdown-content';
+        messageContent.innerHTML = formatMessageContent(content, !isUser);
+        
+        messageDiv.appendChild(messageContent);
+        
+        // Add timestamp
+        const timestamp = document.createElement('small');
+        timestamp.className = 'message-timestamp';
+        timestamp.textContent = new Date().toLocaleString();
+        messageDiv.appendChild(timestamp);
+        
         chatMessages.appendChild(messageDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
+
+    // Format existing messages on page load
+    function formatExistingMessages() {
+        const botMessages = document.querySelectorAll('.bot-message .message-content');
+        botMessages.forEach(messageContent => {
+            const content = messageContent.textContent;
+            messageContent.innerHTML = formatMessageContent(content, true);
+        });
+    }
+
+    // Format existing messages when the page loads
+    formatExistingMessages();
 
     function addTypingIndicator() {
         const indicator = document.createElement('div');
@@ -207,6 +313,41 @@ document.addEventListener('DOMContentLoaded', function() {
         chatMessages.scrollTop = chatMessages.scrollHeight;
         return indicator;
     }
+
+    // Clear chat history
+    clearHistoryButton.addEventListener('click', async function() {
+        if (!confirm('Are you sure you want to clear your chat history?')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch('/clear_chat_history', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to clear chat history');
+            }
+            
+            // Clear the chat messages container
+            chatMessages.innerHTML = '';
+            
+            // Add the welcome message
+            addMessage(`Hello! I'm your nutrition assistant. You can ask me about:
+- Nutrition facts and food information
+- Calorie content of foods
+- Healthy eating tips
+- Meal planning ideas`, false);
+            
+        } catch (error) {
+            console.error('Error clearing chat history:', error);
+            alert('Failed to clear chat history. Please try again.');
+        }
+    });
 
     chatForm.addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -245,11 +386,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.error) {
                 throw new Error(data.error);
             }
-            addMessage(data.reply);
+            addMessage(data.reply, false, data.response_id);
         } catch (error) {
             console.error('Error:', error);
             typingIndicator.remove();
-            addMessage(`Error: ${error.message || 'Sorry, I encountered an error. Please try again.'}`);
+            addMessage(`Error: ${error.message || 'Sorry, I encountered an error. Please try again.'}`, false);
         } finally {
             // Re-enable button and update its state
             updateButtonState();

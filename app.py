@@ -7,6 +7,8 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 from chatbot import get_chat_response, analyze_food_image
+from flask_migrate import Migrate
+import json, re
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -16,6 +18,7 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -30,6 +33,9 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
+    # Streak fields
+    streak_count = db.Column(db.Integer, default=0)
+    last_login_date = db.Column(db.Date, nullable=True)
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -56,6 +62,26 @@ class FoodEntry(db.Model):
     
     user = db.relationship('User', backref=db.backref('food_entries', lazy=True))
 
+# Chat Message Model
+class ChatMessage(db.Model):
+    __tablename__ = 'chat_message'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    is_bot = db.Column(db.Boolean, default=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationship with User
+    user = db.relationship('User', backref=db.backref('chat_messages', lazy=True))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'message': self.message,
+            'is_bot': self.is_bot,
+            'timestamp': self.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+        }
+
 @login_manager.user_loader
 def load_user(user_id):
     try:
@@ -81,6 +107,13 @@ def dashboard():
             db.func.date(FoodEntry.date) == today
         ).all()
         print(f"Found {len(food_entries)} food entries for today")
+
+        # Defensive: Ensure all numeric fields are floats, not None
+        for entry in food_entries:
+            entry.calories = safe_float(entry.calories)
+            entry.protein = safe_float(entry.protein)
+            entry.carbs = safe_float(entry.carbs)
+            entry.fat = safe_float(entry.fat)
         
         return render_template('dashboard.html', 
                              title='Dashboard',
@@ -142,6 +175,21 @@ def login():
             if user.check_password(password):
                 print("Password verification successful")
                 try:
+                    # --- Streak logic ---
+                    today = datetime.utcnow().date()
+                    if user.last_login_date is None:
+                        user.streak_count = 1
+                    else:
+                        days_diff = (today - user.last_login_date).days
+                        if days_diff == 1:
+                            user.streak_count += 1
+                        elif days_diff > 1:
+                            user.streak_count = 1
+                        # If days_diff == 0, do not change streak_count
+                    user.last_login_date = today
+                    db.session.commit()
+                    # --- End streak logic ---
+
                     login_user(user, remember=remember)
                     session.permanent = True  # Make the session permanent
                     print(f"User logged in successfully: {user.username}")
@@ -175,9 +223,19 @@ def logout():
 @app.route('/chat')
 @login_required
 def chat():
-    return render_template('chat.html', title='Chat with NutriBot')
+    # Get last 50 messages for the current user
+    messages = ChatMessage.query.filter_by(user_id=current_user.id)\
+        .order_by(ChatMessage.timestamp.desc())\
+        .limit(50)\
+        .all()
+    
+    # Convert messages to list of dictionaries and reverse to show oldest first
+    chat_history = [msg.to_dict() for msg in reversed(messages)]
+    
+    return render_template('chat.html', title='Chat with NutriBot', chat_history=chat_history)
 
 @app.route('/chatbot_ask', methods=['POST'])
+@login_required
 def chatbot_ask():
     try:
         data = request.get_json()
@@ -191,13 +249,46 @@ def chatbot_ask():
         
         print(f"Received message: {message}")
         
+        # Save user message
+        user_message = ChatMessage(
+            user_id=current_user.id,
+            message=message,
+            is_bot=False
+        )
+        db.session.add(user_message)
+        
+        # Get bot response
         response = get_chat_response(message)
         print(f"Bot response: {response}")
         
-        return jsonify({'reply': response})
+        # Save bot response
+        bot_message = ChatMessage(
+            user_id=current_user.id,
+            message=response,
+            is_bot=True
+        )
+        db.session.add(bot_message)
+        
+        # Commit both messages to database
+        db.session.commit()
+        
+        return jsonify({
+            'reply': response,
+            'message_id': user_message.id,
+            'response_id': bot_message.id
+        })
     except Exception as e:
+        db.session.rollback()
         print(f"Error in chatbot_ask: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+def safe_float(val):
+    try:
+        if val is None or val == '':
+            return 0.0
+        return float(val)
+    except (TypeError, ValueError):
+        return 0.0
 
 @app.route('/analyze_food_image', methods=['POST'])
 @login_required
@@ -217,26 +308,55 @@ def analyze_food_image_route():
         if not image_file.content_type.startswith('image/'):
             return jsonify({"error": "File must be an image"}), 400
         
-        # Analyze the image
+        # Analyze the image using Llama 4 Maverick
         analysis_result = analyze_food_image(image_data)
         
-        if analysis_result.startswith("Sorry"):
-            return jsonify({"error": analysis_result}), 400
+        # --- Robust JSON extraction and field parsing ---
+        try:
+            food_data = json.loads(analysis_result)
+        except json.JSONDecodeError:
+            match = re.search(r'\{.*\}', analysis_result, re.DOTALL)
+            if match:
+                try:
+                    food_data = json.loads(match.group(0))
+                except Exception:
+                    food_data = {}
+            else:
+                food_data = {}
+        name = food_data.get('name', 'Unknown')
+        calories = safe_float(food_data.get('calories'))
+        protein = safe_float(food_data.get('protein'))
+        carbs = safe_float(food_data.get('carbs'))
+        fat = safe_float(food_data.get('fat'))
         
         # Save the food entry with image analysis
         new_entry = FoodEntry(
             user_id=current_user.id,
-            name=image_file.filename,  # Default name from filename
+            name=name,
+            calories=calories,
+            protein=protein,
+            carbs=carbs,
+            fat=fat,
+            date=datetime.utcnow(),
+            description=None,
             image_filename=image_file.filename,
-            image_analysis=analysis_result,
-            date=datetime.utcnow()
+            image_analysis=analysis_result
         )
         db.session.add(new_entry)
         db.session.commit()
         
         return jsonify({
             'analysis': analysis_result,
-            'message': 'Image analyzed successfully'
+            'message': 'Image analyzed and saved successfully',
+            'entry': {
+                'id': new_entry.id,
+                'name': new_entry.name,
+                'calories': new_entry.calories,
+                'protein': new_entry.protein,
+                'carbs': new_entry.carbs,
+                'fat': new_entry.fat,
+                'date': new_entry.date.strftime('%Y-%m-%d %H:%M')
+            }
         })
     except Exception as e:
         print(f"Error processing image: {e}")
@@ -310,6 +430,25 @@ def log_meal():
         print(f"Error logging meal: {e}")
         db.session.rollback()
         return jsonify({"error": f"Error logging meal: {str(e)}"}), 500
+
+@app.route('/clear_chat_history', methods=['POST'])
+@login_required
+def clear_chat_history():
+    try:
+        # Delete all chat messages for the current user
+        ChatMessage.query.filter_by(user_id=current_user.id).delete()
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error clearing chat history: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/food_entry/<int:entry_id>')
+@login_required
+def food_entry_detail(entry_id):
+    entry = FoodEntry.query.filter_by(id=entry_id, user_id=current_user.id).first_or_404()
+    return render_template('food_entry_detail.html', entry=entry)
 
 if __name__ == '__main__':
     with app.app_context():

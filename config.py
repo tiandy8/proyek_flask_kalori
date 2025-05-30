@@ -17,10 +17,10 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', f'sqlite:///{os.path.join(basedir, "kalora.db")}')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # Chat API configuration
-    CHAT_API_KEY = os.getenv('CHAT_API_KEY', 'YOUR_API_KEY_HERE')
-    if not CHAT_API_KEY or CHAT_API_KEY == 'YOUR_API_KEY_HERE':
-        print("WARNING: CHAT_API_KEY not found in environment variables or .env file.")
+    # OpenRouter API configuration
+    OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY', 'YOUR_API_KEY_HERE')
+    if not OPENROUTER_API_KEY or OPENROUTER_API_KEY == 'YOUR_API_KEY_HERE':
+        print("WARNING: OPENROUTER_API_KEY not found in environment variables or .env file.")
 
     # OpenAI API configuration
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', 'YOUR_API_KEY_HERE')
