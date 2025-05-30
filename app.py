@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
-from chatbot import get_gemini_response, analyze_food_image
+from chatbot import get_chat_response, analyze_food_image
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -37,9 +37,9 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-# Meal Model
-class Meal(db.Model):
-    __tablename__ = 'meal'
+# Food Entry Model (Unified)
+class FoodEntry(db.Model):
+    __tablename__ = 'food_entry'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     name = db.Column(db.String(120), nullable=False)
@@ -47,23 +47,14 @@ class Meal(db.Model):
     protein = db.Column(db.Float, nullable=True)
     carbs = db.Column(db.Float, nullable=True)
     fat = db.Column(db.Float, nullable=True)
-    date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
+    date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     description = db.Column(db.Text, nullable=True)
-
-    user = db.relationship('User', backref=db.backref('meals', lazy=True))
-
-# Food Image Model
-class FoodImage(db.Model):
-    __tablename__ = 'food_image'
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    filename = db.Column(db.String(255), nullable=False)
-    upload_time = db.Column(db.DateTime, default=datetime.utcnow)
-    analysis_result = db.Column(db.Text)
-    calories = db.Column(db.Float, nullable=True)
-    description = db.Column(db.Text, nullable=True)
-
-    user = db.relationship('User', backref=db.backref('food_images', lazy=True))
+    
+    # Image-related fields (optional)
+    image_filename = db.Column(db.String(255), nullable=True)
+    image_analysis = db.Column(db.Text, nullable=True)
+    
+    user = db.relationship('User', backref=db.backref('food_entries', lazy=True))
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -83,19 +74,17 @@ def dashboard():
         print(f"Dashboard accessed by user: {current_user.username}")
         print(f"Session data: {dict(session)}")
         
-        # Get user's meals for today
+        # Get user's food entries for today
         today = datetime.utcnow().date()
-        meals = Meal.query.filter_by(user_id=current_user.id, date=today).all()
-        print(f"Found {len(meals)} meals for today")
-        
-        # Get user's food images
-        food_images = FoodImage.query.filter_by(user_id=current_user.id).order_by(FoodImage.upload_time.desc()).limit(5).all()
-        print(f"Found {len(food_images)} food images")
+        food_entries = FoodEntry.query.filter(
+            FoodEntry.user_id == current_user.id,
+            db.func.date(FoodEntry.date) == today
+        ).all()
+        print(f"Found {len(food_entries)} food entries for today")
         
         return render_template('dashboard.html', 
                              title='Dashboard',
-                             meals=meals,
-                             food_images=food_images)
+                             food_entries=food_entries)
     except Exception as e:
         print(f"Error in dashboard: {str(e)}")
         flash('An error occurred while loading the dashboard.', 'danger')
@@ -189,19 +178,26 @@ def chat():
     return render_template('chat.html', title='Chat with NutriBot')
 
 @app.route('/chatbot_ask', methods=['POST'])
-@login_required
 def chatbot_ask():
-    if not request.is_json:
-        return jsonify({"error": "Request must be JSON"}), 400
-
-    data = request.get_json()
-    user_message = data.get('message')
-
-    if not user_message:
-        return jsonify({"error": "Missing 'message' in request body"}), 400
-
-    bot_response = get_gemini_response(user_message)
-    return jsonify({'reply': bot_response})
+    try:
+        data = request.get_json()
+        if not data or 'message' not in data:
+            return jsonify({'error': 'No message provided'}), 400
+        
+        message = data['message']
+        
+        if not message.strip():
+            return jsonify({'error': 'Message cannot be empty'}), 400
+        
+        print(f"Received message: {message}")
+        
+        response = get_chat_response(message)
+        print(f"Bot response: {response}")
+        
+        return jsonify({'reply': response})
+    except Exception as e:
+        print(f"Error in chatbot_ask: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/analyze_food_image', methods=['POST'])
 @login_required
@@ -227,13 +223,15 @@ def analyze_food_image_route():
         if analysis_result.startswith("Sorry"):
             return jsonify({"error": analysis_result}), 400
         
-        # Save the image analysis to database
-        new_image = FoodImage(
+        # Save the food entry with image analysis
+        new_entry = FoodEntry(
             user_id=current_user.id,
-            filename=image_file.filename,
-            analysis_result=analysis_result
+            name=image_file.filename,  # Default name from filename
+            image_filename=image_file.filename,
+            image_analysis=analysis_result,
+            date=datetime.utcnow()
         )
-        db.session.add(new_image)
+        db.session.add(new_entry)
         db.session.commit()
         
         return jsonify({
@@ -245,47 +243,73 @@ def analyze_food_image_route():
         db.session.rollback()
         return jsonify({"error": f"Error processing image: {str(e)}"}), 500
 
-@app.route('/test_gemini')
-@login_required
-def test_gemini():
+@app.route('/test_chat')
+def test_chat():
     try:
-        # Simple test message
-        test_message = "What is the calorie content of an apple?"
-        response = get_gemini_response(test_message)
+        # Test nutrition query
+        nutrition_response = get_chat_response("What are the health benefits of eating fruits?", "nutrition")
+        print("Nutrition response:", nutrition_response)
         
-        if response and len(response) > 0:
-            return jsonify({
-                'status': 'success',
-                'message': 'Gemini API is working correctly!',
-                'test_response': response
-            })
-        else:
-            return jsonify({
-                'status': 'error',
-                'message': 'Gemini API returned empty response'
-            }), 500
-            
-    except Exception as e:
+        # Test meal planning query
+        meal_planning_response = get_chat_response("Can you suggest a simple meal plan for a week?", "meal_planning")
+        print("Meal planning response:", meal_planning_response)
+        
         return jsonify({
-            'status': 'error',
-            'message': f'Error testing Gemini API: {str(e)}'
-        }), 500
+            'nutrition_test': nutrition_response,
+            'meal_planning_test': meal_planning_response
+        })
+    except Exception as e:
+        print(f"Error in test_chat: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/track-meal')
 @login_required
 def track_meal():
-    # Get user's meals and food images
-    meals = Meal.query.filter_by(user_id=current_user.id).order_by(Meal.date.desc()).all()
-    food_images = FoodImage.query.filter_by(user_id=current_user.id).order_by(FoodImage.upload_time.desc()).all()
-    return render_template('track_meal.html', meals=meals, food_images=food_images)
+    # Get user's food entries
+    food_entries = FoodEntry.query.filter_by(user_id=current_user.id).order_by(FoodEntry.date.desc()).all()
+    return render_template('analyze_food.html', food_entries=food_entries)
 
 @app.route('/analyze-food')
 @login_required
 def analyze_food():
-    # Get user's food images and meals
-    food_images = FoodImage.query.filter_by(user_id=current_user.id).order_by(FoodImage.upload_time.desc()).all()
-    meals = Meal.query.filter_by(user_id=current_user.id).order_by(Meal.date.desc()).all()
-    return render_template('analyze_food.html', food_images=food_images, meals=meals)
+    # Get user's food entries
+    food_entries = FoodEntry.query.filter_by(user_id=current_user.id).order_by(FoodEntry.date.desc()).all()
+    return render_template('analyze_food.html', food_entries=food_entries)
+
+@app.route('/log_meal', methods=['POST'])
+@login_required
+def log_meal():
+    try:
+        data = request.get_json()
+        
+        # Create new food entry
+        new_entry = FoodEntry(
+            user_id=current_user.id,
+            name=data.get('name'),
+            calories=data.get('calories'),
+            protein=data.get('protein'),
+            carbs=data.get('carbs'),
+            fat=data.get('fat'),
+            description=data.get('description'),
+            date=datetime.utcnow()
+        )
+        
+        db.session.add(new_entry)
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Meal logged successfully',
+            'entry': {
+                'id': new_entry.id,
+                'name': new_entry.name,
+                'calories': new_entry.calories,
+                'date': new_entry.date.strftime('%Y-%m-%d %H:%M')
+            }
+        })
+    except Exception as e:
+        print(f"Error logging meal: {e}")
+        db.session.rollback()
+        return jsonify({"error": f"Error logging meal: {str(e)}"}), 500
 
 if __name__ == '__main__':
     with app.app_context():

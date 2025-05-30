@@ -5,8 +5,7 @@
             <ul class="nav-menu">
                 {% if current_user.is_authenticated %}
                     <li class="nav-item"><a href="{{ url_for('dashboard') }}" class="nav-link" data-nav-id="dashboard">Dashboard</a></li>
-                    <li class="nav-item"><a href="{{ url_for('track_meal') }}" class="nav-link" data-nav-id="track">Track Meal</a></li>
-                    <li class="nav-item"><a href="{{ url_for('analyze_food') }}" class="nav-link" data-nav-id="analyze">Analyze Food</a></li>
+                    <li class="nav-item"><a href="{{ url_for('analyze_food') }}" class="nav-link" data-nav-id="analyze">Track Food</a></li>
                     <li class="nav-item"><a href="{{ url_for('chat') }}" class="nav-link" data-nav-id="chat">Chat</a></li>
                 {% endif %}
             </ul>

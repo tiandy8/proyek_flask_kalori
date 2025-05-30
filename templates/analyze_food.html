@@ -7,8 +7,8 @@
         <div class="col-12">
             <div class="card calai-greeting-card text-white">
                 <div class="card-body">
-                    <h2 class="card-title mb-1">Analyze Your Food, {{ current_user.username }}!</h2>
-                    <p class="card-text">Upload a photo to get instant calorie and nutrition analysis, or log your meal below.</p>
+                    <h2 class="card-title mb-1">Track Your Food, {{ current_user.username }}!</h2>
+                    <p class="card-text">Upload a photo for instant analysis or log your meal manually.</p>
                 </div>
             </div>
         </div>
@@ -18,7 +18,7 @@
         <div class="col-lg-6 col-12">
             <div class="card mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0">Scan Your Meal</h5>
+                    <h5 class="mb-0 text-white">Scan Your Meal</h5>
                 </div>
                 <div class="card-body">
                     <form id="imageUploadForm" enctype="multipart/form-data">
@@ -35,23 +35,36 @@
                     </form>
                 </div>
             </div>
-            <div class="card">
+            <div class="card text-white">
                 <div class="card-header">
-                    <h5 class="mb-0">Recent Food Analysis</h5>
+                    <h5 class="mb-0">Recent Food Entries</h5>
                 </div>
                 <div class="card-body">
-                    {% if food_images %}
+                    {% if food_entries %}
                         <div class="list-group">
-                            {% for image in food_images %}
+                            {% for entry in food_entries %}
                             <div class="list-group-item">
-                                <h6 class="mb-1">{{ image.filename }}</h6>
-                                <p class="mb-1 text-muted">{{ image.upload_time.strftime('%Y-%m-%d %H:%M') }}</p>
-                                <p class="mb-1">{{ image.analysis_result[:100] }}...</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-1">{{ entry.name }}</h6>
+                                    {% if entry.image_filename %}
+                                    <i class="fas fa-camera text-muted"></i>
+                                    {% endif %}
+                                </div>
+                                <p class="mb-1 text-muted">{{ entry.date.strftime('%Y-%m-%d %H:%M') }}</p>
+                                {% if entry.calories %}
+                                <p class="mb-1">Calories: {{ entry.calories }} kcal</p>
+                                {% endif %}
+                                {% if entry.image_analysis %}
+                                <p class="mb-1">{{ entry.image_analysis[:100] }}...</p>
+                                {% endif %}
+                                {% if entry.description %}
+                                <p class="mb-1">{{ entry.description }}</p>
+                                {% endif %}
                             </div>
                             {% endfor %}
                         </div>
                     {% else %}
-                        <p class="text-muted">No food images analyzed yet</p>
+                        <p class="text-muted">No food entries yet</p>
                     {% endif %}
                 </div>
             </div>
@@ -60,7 +73,7 @@
         <div class="col-lg-6 col-12">
             <div class="card h-100">
                 <div class="card-header">
-                    <h5 class="mb-0">Log Meal</h5>
+                    <h5 class="mb-0 text-white">Log Meal Manually</h5>
                 </div>
                 <div class="card-body">
                     <form id="mealLogForm">
@@ -92,7 +105,7 @@
                                 <input type="number" class="form-control" id="fat">
                             </div>
                         </div>
-                        <button type="submit" class="btn calai-btn-gradient w-100">Save Meal</button>
+                        <button type="submit" class="btn calai-btn-gradient w-100">Save Entry</button>
                     </form>
                 </div>
             </div>
@@ -117,4 +130,133 @@
     color: #fff !important;
 }
 </style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Image Upload Preview
+    const foodImage = document.getElementById('foodImage');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImg = imagePreview.querySelector('img');
+    const uploadStatus = document.getElementById('uploadStatus');
+    const uploadButton = document.getElementById('uploadButton');
+    
+    foodImage.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const file = this.files[0];
+            
+            // Check if file is an image
+            if (!file.type.startsWith('image/')) {
+                showStatus('Please select an image file', 'warning');
+                this.value = '';
+                return;
+            }
+            
+            // Check file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showStatus('Image size should be less than 5MB', 'warning');
+                this.value = '';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                imagePreview.classList.remove('d-none');
+                uploadStatus.classList.add('d-none');
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Image Upload
+    uploadButton.addEventListener('click', async function() {
+        const imageFile = foodImage.files[0];
+        
+        if (!imageFile) {
+            showStatus('Please select an image', 'warning');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('image', imageFile);
+        
+        uploadButton.disabled = true;
+        showStatus('Analyzing image...', 'info');
+        
+        try {
+            const response = await fetch('/analyze_food_image', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                showStatus(data.message || 'Analysis complete!', 'success');
+                // Reload the page after a short delay to show the new analysis
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                showStatus(data.error || 'Error analyzing image', 'danger');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showStatus('Error uploading image. Please try again.', 'danger');
+        } finally {
+            uploadButton.disabled = false;
+        }
+    });
+
+    // Manual Meal Logging
+    const mealLogForm = document.getElementById('mealLogForm');
+    mealLogForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = {
+            name: document.getElementById('mealName').value,
+            description: document.getElementById('mealDescription').value,
+            calories: parseFloat(document.getElementById('calories').value) || null,
+            protein: parseFloat(document.getElementById('protein').value) || null,
+            carbs: parseFloat(document.getElementById('carbs').value) || null,
+            fat: parseFloat(document.getElementById('fat').value) || null
+        };
+        
+        try {
+            const response = await fetch('/log_meal', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                showStatus(data.message || 'Meal logged successfully!', 'success');
+                // Clear form
+                mealLogForm.reset();
+                // Reload the page after a short delay to show the new entry
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                showStatus(data.error || 'Error logging meal', 'danger');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showStatus('Error logging meal. Please try again.', 'danger');
+        }
+    });
+
+    function showStatus(message, type) {
+        uploadStatus.textContent = message;
+        uploadStatus.className = `alert alert-${type}`;
+        uploadStatus.classList.remove('d-none');
+    }
+});
+</script>
 {% endblock %} 

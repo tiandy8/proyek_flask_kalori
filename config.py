@@ -17,9 +17,12 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', f'sqlite:///{os.path.join(basedir, "kalora.db")}')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # Gemini API configuration
-    GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+    # Chat API configuration
+    CHAT_API_KEY = os.getenv('CHAT_API_KEY', 'YOUR_API_KEY_HERE')
+    if not CHAT_API_KEY or CHAT_API_KEY == 'YOUR_API_KEY_HERE':
+        print("WARNING: CHAT_API_KEY not found in environment variables or .env file.")
 
-    # Optional check for API key
-    if not GEMINI_API_KEY:
-        print("WARNING: GEMINI_API_KEY not found in environment variables or .env file.")
+    # OpenAI API configuration
+    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', 'YOUR_API_KEY_HERE')
+    if not OPENAI_API_KEY or OPENAI_API_KEY == 'YOUR_API_KEY_HERE':
+        print("WARNING: OPENAI_API_KEY not found in environment variables or .env file.")

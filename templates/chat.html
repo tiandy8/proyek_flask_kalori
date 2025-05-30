@@ -2,290 +2,194 @@
 
 {% block content %}
 <div class="container py-4">
-
-        <!-- NutriBot Chat Section -->
-        <div class="col-lg">
-            <div class="card h-100">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">Ask NutriBot</h4>
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card glass">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Chat with NutriBot</h4>
+                    <span class="badge bg-light text-primary">AI Nutrition Assistant</span>
                 </div>
                 <div class="card-body d-flex flex-column">
-                    <div id="chat-messages" class="mb-3 flex-grow-1" style="height: 320px; overflow-y: auto; background: #f8f9fa; border-radius: 8px; padding: 1rem;">
+                    <div id="chat-messages" class="chat-messages mb-3 flex-grow-1">
                         <div class="message bot-message">
                             <div class="message-content">
-                                Hello! I'm KALORA your nutrition assistant. You can ask me about food, nutrition, or healthy eating.
+                                Hello! I'm your nutrition assistant. You can ask me about:
+                                <ul class="mt-2">
+                                    <li>Nutrition facts and food information</li>
+                                    <li>Calorie content of foods</li>
+                                    <li>Healthy eating tips</li>
+                                    <li>Meal planning ideas</li>
+                                </ul>
                             </div>
                         </div>
                     </div>
-                    <form id="chat-form" class="d-flex gap-2">
-                        <input type="text" id="user-input" class="form-control" placeholder="Ask me about nutrition or food...">
-                        <button class="btn btn-primary" type="submit">send</button>
+                    <form id="chat-form" class="chat-form">
+                        <div class="input-group">
+                            <input type="text" id="user-input" class="form-control" placeholder="Ask me about nutrition or food..." autocomplete="off">
+                            <button class="btn btn-primary" type="submit" id="send-button" disabled>
+                                <i class="fas fa-paper-plane"></i> Send
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
+        </div>
     </div>
 </div>
-    <style>
 
-.cal-alert {
-            background-color: rgba(17, 16, 16, 0.95);
-            color: var(--cal-text);
-            border: 1px solid rgba(79, 25, 214, 0.3);
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            min-width: 300px;
-            max-width: 500px;
-            padding: 1rem 1.5rem;
-            backdrop-filter: blur(10px);
-            transform: translateX(120%);
-            transition: transform 0.3s ease;
-        }
+<style>
+.chat-messages {
+    height: 400px;
+    overflow-y: auto;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
 
-        .cal-alert.show {
-            transform: translateX(0);
-        }
+.message {
+    margin-bottom: 1rem;
+    max-width: 85%;
+    animation: fadeIn 0.3s ease-out;
+}
 
-        .cal-alert.alert-danger {
-            border-left: 4px solid #dc3545;
-            background-color: rgba(17, 16, 16, 0.95);
-        }
+.message-content {
+    padding: 0.8rem 1.2rem;
+    border-radius: 12px;
+    line-height: 1.5;
+}
 
-        .cal-alert.alert-success {
-            border-left: 4px solid #28a745;
-            background-color: rgba(17, 16, 16, 0.95);
-        }
+.bot-message {
+    margin-right: auto;
+}
 
-        .cal-alert.alert-warning {
-            border-left: 4px solid #ffc107;
-            background-color: rgba(17, 16, 16, 0.95);
-        }
+.bot-message .message-content {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--cal-text);
+    border-bottom-left-radius: 4px;
+}
 
-        .cal-alert.alert-info {
-            border-left: 4px solid #17a2b8;
-            background-color: rgba(17, 16, 16, 0.95);
-        }
+.user-message {
+    margin-left: auto;
+}
 
-        .flash-messages {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        :root {
-            --cal-primary: #4F19D6;
-            --cal-secondary: #00C9A7;
-            --cal-accent: #FFD166;
-            --cal-background: #0A0A0A;
-            --cal-surface: #FFFFFF;
-            --cal-text: #FFFFFF;
-            --cal-text-secondary: #B8B8B8;
-            --cal-border: #2A2A2A;
-            --cal-shadow: rgba(0, 0, 0, 0.2);
-        }
+.user-message .message-content {
+    background: var(--cal-primary);
+    color: white;
+    border-bottom-right-radius: 4px;
+}
 
-        body {
-            background-color: var(--cal-background);
-            color: var(--cal-text);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+.chat-form {
+    margin-top: 1rem;
+}
 
-        .main-content {
-            background-color: var(--cal-background);
-            flex: 1;
-            padding: 2rem 0;
-        }
+.chat-form .input-group {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+}
 
-        .cal-alert {
-            background-color: var(--cal-surface);
-            color: var(--cal-text);
-            border: none;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px var(--cal-shadow);
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            min-width: 300px;
-            max-width: 500px;
-        }
+.chat-form .form-control {
+    border: none;
+    background: transparent;
+    padding: 0.8rem 1.2rem;
+    color: var(--cal-text);
+}
 
-        #page-loader {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(10, 10, 10, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
+.chat-form .form-control:focus {
+    box-shadow: none;
+    background: rgba(255, 255, 255, 0.08);
+}
 
-        .cal-loading {
-            width: 40px;
-            height: 40px;
-            border: 3px solid var(--cal-primary);
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 1s linear infinite;
-        }
+.chat-form .btn {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    background: var(--cal-primary);
+    color: white;
+    transition: all 0.3s ease;
+    min-width: 100px;
+}
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+.chat-form .btn:hover:not(:disabled) {
+    background: var(--cal-secondary);
+    transform: translateY(-1px);
+}
 
-        /* Form Input Styles */
-        .form-control {
-            background-color: rgba(255, 255, 255, 0.05) !important;
-            border: 1px solid rgba(79, 25, 214, 0.3) !important;
-            color: var(--cal-text) !important;
-            border-radius: 8px;
-            padding: 0.75rem 1rem;
-            transition: all 0.3s ease;
-        }
+.chat-form .btn:disabled {
+    background: var(--cal-secondary);
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
 
-        .form-control:focus {
-            background-color: rgba(255, 255, 255, 0.1) !important;
-            border-color: var(--cal-primary) !important;
-            box-shadow: 0 0 0 3px rgba(79, 25, 214, 0.2) !important;
-            color: var(--cal-text) !important;
-        }
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 
-        .form-control::placeholder {
-            color: var(--cal-text-secondary);
-            opacity: 0.7;
-        }
+/* Loading animation */
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    padding: 0.8rem 1.2rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    width: fit-content;
+}
 
-        .form-label {
-            color: var(--cal-text);
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-        }
+.typing-indicator span {
+    height: 8px;
+    width: 8px;
+    background: var(--cal-primary);
+    border-radius: 50%;
+    display: inline-block;
+    margin: 0 2px;
+    animation: typing 1s infinite;
+}
 
-        /* Modern Card Styles */
-        .card {
-            background-color: var(--cal-background);
-            border: 1px solid rgba(79, 25, 214, 0.2);
-            border-radius: 16px;
-            box-shadow: 
-                0 4px 6px rgba(0, 0, 0, 0.1),
-                0 1px 3px rgba(0, 0, 0, 0.08),
-                inset 0 0 0 1px rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
+.typing-indicator span:nth-child(2) {
+    animation-delay: 0.2s;
+}
 
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(
-                90deg,
-                transparent,
-                rgba(79, 25, 214, 0.5),
-                transparent
-            );
-        }
+.typing-indicator span:nth-child(3) {
+    animation-delay: 0.4s;
+}
 
-        .card::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(
-                90deg,
-                transparent,
-                rgba(255, 255, 255, 0.2),
-                transparent
-            );
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 
-                0 8px 12px rgba(0, 0, 0, 0.15),
-                0 2px 4px rgba(0, 0, 0, 0.1),
-                inset 0 0 0 1px rgba(255, 255, 255, 0.15);
-        }
-
-        .card-body {
-            padding: 1.5rem;
-            position: relative;
-            z-index: 1;
-        }
-
-        .card-title {
-            color: var(--cal-text);
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-
-        .card-text {
-            color: var(--cal-text-secondary);
-        }
-
-        /* Glass effect for specific cards */
-        .card.glass {
-            background: rgba(10, 10, 10, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(79, 25, 214, 0.3);
-        }
-
-        /* Gradient border effect */
-        .card.gradient-border {
-            position: relative;
-            background: var(--cal-background);
-            border: none;
-        }
-
-        .card.gradient-border::before {
-            content: '';
-            position: absolute;
-            top: -1px;
-            left: -1px;
-            right: -1px;
-            bottom: -1px;
-            background: linear-gradient(45deg, var(--cal-primary), transparent, var(--cal-primary));
-            border-radius: 16px;
-            z-index: -1;
-            animation: borderRotate 4s linear infinite;
-        }
-
-        @keyframes borderRotate {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-    </style>
+@keyframes typing {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+}
+</style>
 {% endblock %}
 
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // --- Chat Section ---
     const chatForm = document.getElementById('chat-form');
     const userInput = document.getElementById('user-input');
     const chatMessages = document.getElementById('chat-messages');
+    const sendButton = document.getElementById('send-button');
+
+    // Function to update button state based on input
+    function updateButtonState() {
+        const message = userInput.value.trim();
+        sendButton.disabled = !message;
+    }
+
+    // Add input event listener to enable/disable button
+    userInput.addEventListener('input', updateButtonState);
 
     function addMessage(content, isUser = false) {
         const messageDiv = document.createElement('div');
@@ -295,79 +199,75 @@ document.addEventListener('DOMContentLoaded', function() {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
+    function addTypingIndicator() {
+        const indicator = document.createElement('div');
+        indicator.className = 'typing-indicator';
+        indicator.innerHTML = '<span></span><span></span><span></span>';
+        chatMessages.appendChild(indicator);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return indicator;
+    }
+
     chatForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         const message = userInput.value.trim();
         if (!message) return;
+
+        // Add user message
         addMessage(message, true);
         userInput.value = '';
+
+        // Disable button while processing
+        sendButton.disabled = true;
+
+        // Add typing indicator
+        const typingIndicator = addTypingIndicator();
+
         try {
             const response = await fetch('/chatbot_ask', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
                 body: JSON.stringify({ message: message })
             });
+
+            // Remove typing indicator
+            typingIndicator.remove();
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Network response was not ok');
+            }
+
             const data = await response.json();
+            if (data.error) {
+                throw new Error(data.error);
+            }
             addMessage(data.reply);
         } catch (error) {
-            addMessage('Sorry, there was an error processing your request.');
+            console.error('Error:', error);
+            typingIndicator.remove();
+            addMessage(`Error: ${error.message || 'Sorry, I encountered an error. Please try again.'}`);
+        } finally {
+            // Re-enable button and update its state
+            updateButtonState();
+            userInput.focus();
         }
     });
 
-    // --- Image Analysis Section ---
-    const imageForm = document.getElementById('image-upload-form');
-    const foodImage = document.getElementById('food-image');
-    const imagePreview = document.getElementById('imagePreview');
-    const previewImg = imagePreview.querySelector('img');
-    const imageAnalysisResult = document.getElementById('image-analysis-result');
-
-    foodImage.addEventListener('change', function() {
-        if (this.files && this.files[0]) {
-            const file = this.files[0];
-            if (!file.type.startsWith('image/')) {
-                imageAnalysisResult.innerHTML = '<div class="alert alert-warning">Please select an image file.</div>';
-                this.value = '';
-                return;
-            }
-            if (file.size > 5 * 1024 * 1024) {
-                imageAnalysisResult.innerHTML = '<div class="alert alert-warning">Image size should be less than 5MB.</div>';
-                this.value = '';
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                previewImg.src = e.target.result;
-                imagePreview.classList.remove('d-none');
-            }
-            reader.readAsDataURL(file);
+    // Prevent Enter key from submitting empty form
+    userInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !userInput.value.trim()) {
+            e.preventDefault();
         }
     });
 
-    imageForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const imageFile = foodImage.files[0];
-        if (!imageFile) {
-            imageAnalysisResult.innerHTML = '<div class="alert alert-warning">Please select an image.</div>';
-            return;
-        }
-        const formData = new FormData();
-        formData.append('image', imageFile);
-        imageAnalysisResult.innerHTML = '<div class="alert alert-info">Analyzing image...</div>';
-        try {
-            const response = await fetch('/analyze_food_image', {
-                method: 'POST',
-                body: formData
-            });
-            const data = await response.json();
-            if (response.ok) {
-                imageAnalysisResult.innerHTML = `<div class="alert alert-success">${data.analysis}</div>`;
-            } else {
-                imageAnalysisResult.innerHTML = `<div class="alert alert-danger">${data.error || 'Error analyzing image'}</div>`;
-            }
-        } catch (error) {
-            imageAnalysisResult.innerHTML = '<div class="alert alert-danger">Error uploading image. Please try again.</div>';
-        }
-    });
+    // Initial button state
+    updateButtonState();
+    // Focus input on page load
+    userInput.focus();
 });
 </script>
 {% endblock %}
