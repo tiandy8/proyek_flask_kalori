@@ -8,7 +8,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 from chatbot import get_chat_response, analyze_food_image
 from flask_migrate import Migrate
-import json, re
+import json, re, os
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -301,11 +302,22 @@ def analyze_food_image_route():
         return jsonify({"error": "No selected file"}), 400
     
     try:
-        # Read the image file
-        image_data = image_file.read()
+        # Generate a unique filename
+        filename = secure_filename(image_file.filename)
+        timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+        unique_filename = f"{timestamp}_{filename}"
+        
+        # Save the image file
+        image_path = os.path.join('static', 'uploads', unique_filename)
+        image_file.save(image_path)
+        
+        # Read the image file for analysis
+        with open(image_path, 'rb') as f:
+            image_data = f.read()
         
         # Check if the file is actually an image
         if not image_file.content_type.startswith('image/'):
+            os.remove(image_path)  # Delete the file if it's not an image
             return jsonify({"error": "File must be an image"}), 400
         
         # Analyze the image using Llama 4 Maverick
@@ -339,7 +351,7 @@ def analyze_food_image_route():
             fat=fat,
             date=datetime.utcnow(),
             description=None,
-            image_filename=image_file.filename,
+            image_filename=unique_filename,
             image_analysis=analysis_result
         )
         db.session.add(new_entry)
@@ -360,6 +372,9 @@ def analyze_food_image_route():
         })
     except Exception as e:
         print(f"Error processing image: {e}")
+        # Clean up the image file if it was saved
+        if 'image_path' in locals() and os.path.exists(image_path):
+            os.remove(image_path)
         db.session.rollback()
         return jsonify({"error": f"Error processing image: {str(e)}"}), 500
 

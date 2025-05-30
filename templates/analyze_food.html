@@ -23,15 +23,22 @@
                 <div class="card-body">
                     <form id="imageUploadForm" enctype="multipart/form-data">
                         <div class="mb-3">
-                            <label for="foodImage" class="form-label">Select Image</label>
-                            <input type="file" class="form-control" id="foodImage" name="image" accept="image/*" required>
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-primary" id="takePhotoBtn">
+                                    <i class="fas fa-camera me-2"></i>Take Photo
+                                </button>
+                                <button type="button" class="btn btn-secondary" id="chooseFromLibraryBtn">
+                                    <i class="fas fa-images me-2"></i>Choose from Library
+                                </button>
+                            </div>
+                            <input type="file" class="form-control d-none" id="foodImage" name="image" accept="image/*" capture="environment">
                         </div>
                         <div id="imagePreview" class="mb-3 d-none">
                             <img src="" alt="Preview" class="img-fluid rounded">
                         </div>
                         <div id="uploadStatus" class="alert d-none"></div>
                         <div id="loadingSpinner" class="spinner d-none"></div>
-                        <button type="button" class="btn calai-btn-gradient w-100" id="uploadButton">Analyze Image</button>
+                        <button type="button" class="btn calai-btn-gradient w-100" id="uploadButton" disabled>Analyze Image</button>
                     </form>
                 </div>
             </div>
@@ -129,18 +136,44 @@
     background: linear-gradient(90deg, #00C9A7 60%, #6C63FF 100%) !important;
     color: #fff !important;
 }
+.spinner {
+    width: 40px;
+    height: 40px;
+    margin: 20px auto;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #6C63FF;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 </style>
 {% endblock %}
 
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Image Upload Preview
     const foodImage = document.getElementById('foodImage');
     const imagePreview = document.getElementById('imagePreview');
     const previewImg = imagePreview.querySelector('img');
     const uploadStatus = document.getElementById('uploadStatus');
     const uploadButton = document.getElementById('uploadButton');
+    const takePhotoBtn = document.getElementById('takePhotoBtn');
+    const chooseFromLibraryBtn = document.getElementById('chooseFromLibraryBtn');
+    
+    // Take photo button click handler
+    takePhotoBtn.addEventListener('click', function() {
+        foodImage.setAttribute('capture', 'environment');
+        foodImage.click();
+    });
+    
+    // Choose from library button click handler
+    chooseFromLibraryBtn.addEventListener('click', function() {
+        foodImage.removeAttribute('capture');
+        foodImage.click();
+    });
     
     foodImage.addEventListener('change', function() {
         if (this.files && this.files[0]) {
@@ -150,6 +183,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!file.type.startsWith('image/')) {
                 showStatus('Please select an image file', 'warning');
                 this.value = '';
+                uploadButton.disabled = true;
                 return;
             }
             
@@ -157,6 +191,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (file.size > 5 * 1024 * 1024) {
                 showStatus('Image size should be less than 5MB', 'warning');
                 this.value = '';
+                uploadButton.disabled = true;
                 return;
             }
             
@@ -165,6 +200,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 previewImg.src = e.target.result;
                 imagePreview.classList.remove('d-none');
                 uploadStatus.classList.add('d-none');
+                uploadButton.disabled = false;
             }
             reader.readAsDataURL(file);
         }
@@ -184,6 +220,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         uploadButton.disabled = true;
         showStatus('Analyzing image...', 'info');
+        document.getElementById('loadingSpinner').classList.remove('d-none');
         
         try {
             const response = await fetch('/analyze_food_image', {
@@ -201,12 +238,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 2000);
             } else {
                 showStatus(data.error || 'Error analyzing image', 'danger');
+                uploadButton.disabled = false;
             }
         } catch (error) {
             console.error('Error:', error);
             showStatus('Error uploading image. Please try again.', 'danger');
-        } finally {
             uploadButton.disabled = false;
+        } finally {
+            document.getElementById('loadingSpinner').classList.add('d-none');
         }
     });
 
