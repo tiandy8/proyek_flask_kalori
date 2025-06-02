@@ -3,7 +3,7 @@
 <div class="container py-4">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="card glass">
+            <div class="card">
                 <div class="card-header bg-primary text-white">
                     <h4 class="mb-0">Food Entry Details</h4>
                 </div>
@@ -15,10 +15,10 @@
                     {% endif %}
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item"><strong>Name:</strong> {{ entry.name }}</li>
-                        <li class="list-group-item"><strong>Calories:</strong> {{ "%.0f"|format(entry.calories or 0) }} kcal</li>
-                        <li class="list-group-item"><strong>Protein:</strong> {{ "%.1f"|format(entry.protein or 0) }}g</li>
-                        <li class="list-group-item"><strong>Carbs:</strong> {{ "%.1f"|format(entry.carbs or 0) }}g</li>
-                        <li class="list-group-item"><strong>Fat:</strong> {{ "%.1f"|format(entry.fat or 0) }}g</li>
+                        <li class="list-group-item"><strong>Calories:</strong> <span class="badge bg-primary">{{ "%.0f"|format(entry.calories or 0) }} kcal</span></li>
+                        <li class="list-group-item"><strong>Protein:</strong> <span class="badge bg-info">{{ "%.1f"|format(entry.protein or 0) }}g</span></li>
+                        <li class="list-group-item"><strong>Carbs:</strong> <span class="badge bg-secondary">{{ "%.1f"|format(entry.carbs or 0) }}g</span></li>
+                        <li class="list-group-item"><strong>Fat:</strong> <span class="badge bg-secondary">{{ "%.1f"|format(entry.fat or 0) }}g</span></li>
                         <li class="list-group-item"><strong>Date:</strong> {{ entry.date.strftime('%Y-%m-%d %H:%M') }}</li>
                         {% if entry.description %}
                         <li class="list-group-item"><strong>Description:</strong> {{ entry.description }}</li>
@@ -27,7 +27,7 @@
                         <li class="list-group-item"><strong>Raw Analysis:</strong> <pre>{{ entry.image_analysis }}</pre></li>
                         {% endif %}
                     </ul>
-                    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary mt-3">Back to Dashboard</a>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary mt-3">Back to Dashboard</a>
                 </div>
             </div>
         </div>

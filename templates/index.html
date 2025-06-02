@@ -1,55 +1,55 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="hero-section">
+<div class="hero-section py-5 text-center" style="background: linear-gradient(135deg, #e8fff3 0%, #f7f9fa 100%);">
     <div class="container">
-        <h1 class="hero-title">Welcome to Kalora ✨</h1>
-        <p class="hero-subtitle">Your personal nutrition companion</p>
-        <div class="hero-cta">
+        <h1 class="hero-title mb-3" style="font-size:3rem; font-weight:700; color:var(--primary); background:none; -webkit-background-clip:unset; -webkit-text-fill-color:unset;">Welcome to Kalora ✨</h1>
+        <p class="hero-subtitle mb-4" style="font-size:1.25rem; color:var(--text-secondary);">Your personal nutrition companion</p>
+        <div class="hero-cta d-flex justify-content-center gap-3">
             {% if current_user.is_authenticated %}
-                <a href="{{ url_for('dashboard') }}" class="btn btn-cal-primary">Go to Dashboard</a>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg">Go to Dashboard</a>
             {% else %}
-                <a href="{{ url_for('register') }}" class="btn btn-cal-primary">Get Started</a>
-                <a href="{{ url_for('login') }}" class="btn btn-cal-outline">Login</a>
+                <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">Get Started</a>
+                <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">Login</a>
             {% endif %}
         </div>
     </div>
 </div>
 
-<div class="features-section">
+<div class="features-section py-5" style="background: #fff;">
     <div class="container">
-        <h2 class="section-title">Why Choose Kalora?</h2>
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">📊</div>
-                <h3>Track Your Meals</h3>
-                <p>Easily log and track your daily meals and nutrition intake with our intuitive interface</p>
-                <div class="feature-details">
-                    <ul>
+        <h2 class="section-title mb-5" style="font-size:2.2rem; font-weight:700; color:var(--primary);">Why Choose Kalora?</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 text-center p-4">
+                    <div class="feature-icon mb-3" style="font-size:2.5rem;">📊</div>
+                    <h3 class="mb-2" style="font-size:1.3rem; font-weight:600; color:var(--text);">Track Your Meals</h3>
+                    <p class="mb-3 text-secondary">Easily log and track your daily meals and nutrition intake with our intuitive interface</p>
+                    <ul class="list-unstyled text-secondary mb-0">
                         <li>Daily calorie tracking</li>
                         <li>Nutrition breakdown</li>
                         <li>Meal history</li>
                     </ul>
                 </div>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">📷</div>
-                <h3>Analyze Food Images</h3>
-                <p>Upload food photos to get instant nutritional information powered by AI</p>
-                <div class="feature-details">
-                    <ul>
+            <div class="col-md-4">
+                <div class="card h-100 text-center p-4">
+                    <div class="feature-icon mb-3" style="font-size:2.5rem;">📷</div>
+                    <h3 class="mb-2" style="font-size:1.3rem; font-weight:600; color:var(--text);">Analyze Food Images</h3>
+                    <p class="mb-3 text-secondary">Upload food photos to get instant nutritional information powered by AI</p>
+                    <ul class="list-unstyled text-secondary mb-0">
                         <li>Instant calorie estimation</li>
                         <li>Food recognition</li>
                         <li>Portion analysis</li>
                     </ul>
                 </div>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">💬</div>
-                <h3>AI Nutrition Assistant</h3>
-                <p>Get personalized nutrition advice from our advanced AI chatbot</p>
-                <div class="feature-details">
-                    <ul>
+            <div class="col-md-4">
+                <div class="card h-100 text-center p-4">
+                    <div class="feature-icon mb-3" style="font-size:2.5rem;">💬</div>
+                    <h3 class="mb-2" style="font-size:1.3rem; font-weight:600; color:var(--text);">AI Nutrition Assistant</h3>
+                    <p class="mb-3 text-secondary">Get personalized nutrition advice from our advanced AI chatbot</p>
+                    <ul class="list-unstyled text-secondary mb-0">
                         <li>Dietary recommendations</li>
                         <li>Meal planning help</li>
                         <li>Nutritional guidance</li>

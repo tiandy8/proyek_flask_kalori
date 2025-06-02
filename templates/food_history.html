@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 class="card-title mb-0">Food History</h2>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if entries_by_date %}
+        {% for date, entries in entries_by_date.items() %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">{{ date }}</h5>
+                        <span class="badge bg-primary">{{ entries|length }} entries</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive rounded">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 50px">No.</th>
+                                        <th>Time</th>
+                                        <th>Food</th>
+                                        <th>Calories</th>
+                                        <th>Protein</th>
+                                        <th>Carbs</th>
+                                        <th>Fat</th>
+                                        <th>Type</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for entry in entries %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ entry.date.strftime('%H:%M') }}</td>
+                                        <td>
+                                            <a href="{{ url_for('food_entry_detail', entry_id=entry.id) }}" class="text-decoration-none text-primary">
+                                                {{ entry.name }}
+                                            </a>
+                                            {% if entry.description %}
+                                            <small class="d-block text-secondary">{{ entry.description }}</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ "%.0f"|format(entry.calories|default(0) or 0) }} kcal</td>
+                                        <td>{{ "%.1f"|format(entry.protein|default(0) or 0) }}g</td>
+                                        <td>{{ "%.1f"|format(entry.carbs|default(0) or 0) }}g</td>
+                                        <td>{{ "%.1f"|format(entry.fat|default(0) or 0) }}g</td>
+                                        <td>
+                                            {% if entry.image_filename %}
+                                            <span class="badge bg-info">Image</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary">Manual</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-active">
+                                        <td colspan="3" class="text-end"><strong>Daily Total:</strong></td>
+                                        <td><strong>{{ "%.0f"|format(entries|map(attribute='calories')|sum|default(0)) }} kcal</strong></td>
+                                        <td><strong>{{ "%.1f"|format(entries|map(attribute='protein')|sum|default(0)) }}g</strong></td>
+                                        <td><strong>{{ "%.1f"|format(entries|map(attribute='carbs')|sum|default(0)) }}g</strong></td>
+                                        <td><strong>{{ "%.1f"|format(entries|map(attribute='fat')|sum|default(0)) }}g</strong></td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-history fa-3x mb-3" style="color: var(--text-secondary);"></i>
+                        <h4 class="text-secondary">No food entries found</h4>
+                        <p class="text-secondary">Start tracking your meals to see your history here!</p>
+                        <a href="{{ url_for('analyze_food') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Add Food Entry
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %} 

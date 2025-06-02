@@ -3,22 +3,22 @@
 {% block content %}
 <div class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card glass">
+        <div class="col-lg-8 mx-auto" style="width: 65%;">
+            <div class="card">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h4 class="mb-0">Chat with NutriBot</h4>
                     <div class="d-flex align-items-center">
-                        <button id="clear-history" class="btn btn-sm btn-light me-2" title="Clear chat history">
-                            <i class="fas fa-trash text-primary">Clear Message</i>
+                        <button id="clear-history" class="btn btn-outline-primary btn-sm fw-bold me-2" title="Clear chat history">
+                            <i class="fas fa-trash me-1"></i>Clear Messages
                         </button>
                         <span class="badge bg-light text-primary">AI Nutrition Assistant</span>
                     </div>
                 </div>
                 <div class="card-body d-flex flex-column">
-                    <div id="chat-messages" class="chat-messages mb-3 flex-grow-1">
+                    <div id="chat-messages" class="chat-output-area mb-3 flex-grow-1" style="height:400px; max-height:400px; overflow-y:auto;">
                         {% if not chat_history %}
-                        <div class="message bot-message">
-                            <div class="message-content">
+                        <div class="chat-message bot">
+                            <div class="chat-bubble markdown-content">
                                 Hello! I'm your nutrition assistant. You can ask me about:
                                 <ul class="mt-2">
                                     <li>Nutrition facts and food information</li>
@@ -30,10 +30,10 @@
                         </div>
                         {% else %}
                             {% for message in chat_history %}
-                            <div class="message {{ 'bot-message' if message.is_bot else 'user-message' }}" data-message-id="{{ message.id }}">
-                                <div class="message-content markdown-content">
+                            <div class="chat-message {{ 'bot' if message.is_bot else 'user' }} vstack">
+                                <div class="chat-bubble markdown-content" data-is-bot="{{ 'true' if message.is_bot else 'false' }}">
                                     {% if message.is_bot %}
-                                        {{ message.message|safe }}
+                                        {{ message.message|e }}
                                     {% else %}
                                         {{ message.message }}
                                     {% endif %}
@@ -43,7 +43,7 @@
                             {% endfor %}
                         {% endif %}
                     </div>
-                    <form id="chat-form" class="chat-form">
+                    <form id="chat-form" class="chat-input-area mt-2" autocomplete="off">
                         <div class="input-group">
                             <input type="text" id="user-input" class="form-control" placeholder="Ask me about nutrition or food..." autocomplete="off">
                             <button class="btn btn-primary" type="submit" id="send-button" disabled>
@@ -56,188 +56,60 @@
         </div>
     </div>
 </div>
-
 <style>
-.chat-messages {
-    height: 400px;
-    overflow-y: auto;
-    padding: 1rem;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+/* Markdown and chat bubble styles */
+.markdown-content p { margin-bottom: 0.5rem; }
+.markdown-content ul, .markdown-content ol { margin-left: 1.5rem; margin-bottom: 0.5rem; }
+.markdown-content li { margin-bottom: 0.25rem; }
+.markdown-content strong, .markdown-content b { font-weight: 700; }
+.markdown-content em, .markdown-content i { font-style: italic; }
+.markdown-content code {
+    background: rgba(0, 197, 105, 0.08);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-family: 'Fira Mono', 'Consolas', 'Menlo', monospace;
+    font-size: 0.98em;
 }
+.chat-bubble { word-break: break-word; }
+.input-group { align-items: stretch; }
 
-.message {
-    margin-bottom: 1rem;
-    max-width: 85%;
-    animation: fadeIn 0.3s ease-out;
+/* Chat bubble alignment */
+.chat-message {
+    margin-bottom: 20px;
 }
-
-.message-content {
-    padding: 0.8rem 1.2rem;
-    border-radius: 12px;
-    line-height: 1.5;
+.chat-message.user {
+    display: flex;
+    justify-content: flex-end;
 }
-
+.chat-message.bot {
+    display: flex;
+    justify-content: flex-start;
+}
+.chat-message.user .chat-bubble {
+    background-color: #e3f2fd;
+    border-radius: 15px 15px 0 15px;
+    padding: 10px 15px;
+    margin-left: auto;
+    max-width: 80%;
+}
+.chat-message.bot .chat-bubble {
+    background-color: #f1f1f1;
+    border-radius: 15px 15px 15px 0;
+    padding: 10px 15px;
+    margin-right: auto;
+    max-width: 80%;
+}
 .message-timestamp {
     display: block;
     font-size: 0.75rem;
-    color: var(--cal-text-secondary);
-    margin-top: 0.25rem;
-    margin-left: 0.5rem;
+    color: #888;
+    margin-top: 4px;
 }
-
-/* Add styles for Markdown content */
-.markdown-content p {
-    margin-bottom: 0.5rem;
+.chat-message.user .message-timestamp {
+    text-align: right;
 }
-
-.markdown-content ul, .markdown-content ol {
-    margin-left: 1.5rem;
-    margin-bottom: 0.5rem;
-}
-
-.markdown-content li {
-    margin-bottom: 0.25rem;
-}
-
-.markdown-content strong {
-    font-weight: 600;
-}
-
-.markdown-content em {
-    font-style: italic;
-}
-
-.markdown-content code {
-    background: rgba(0, 0, 0, 0.1);
-    padding: 0.2rem 0.4rem;
-    border-radius: 4px;
-    font-family: monospace;
-}
-
-.bot-message {
-    margin-right: auto;
-}
-
-.bot-message .message-content {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--cal-text);
-    border-bottom-left-radius: 4px;
-}
-
-.user-message {
-    margin-left: auto;
-}
-
-.user-message .message-content {
-    background: var(--cal-primary);
-    color: white;
-    border-bottom-right-radius: 4px;
-}
-
-.chat-form {
-    margin-top: 1rem;
-}
-
-.chat-form .input-group {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    overflow: hidden;
-}
-
-.chat-form .form-control {
-    border: none;
-    background: transparent;
-    padding: 0.8rem 1.2rem;
-    color: var(--cal-text);
-}
-
-.chat-form .form-control:focus {
-    box-shadow: none;
-    background: rgba(255, 255, 255, 0.08);
-}
-
-.chat-form .btn {
-    padding: 0.8rem 1.5rem;
-    border: none;
-    background: var(--cal-primary);
-    color: white;
-    transition: all 0.3s ease;
-    min-width: 100px;
-}
-
-.chat-form .btn:hover:not(:disabled) {
-    background: var(--cal-secondary);
-    transform: translateY(-1px);
-}
-
-.chat-form .btn:disabled {
-    background: var(--cal-secondary);
-    opacity: 0.7;
-    cursor: not-allowed;
-    transform: none;
-}
-
-#clear-history {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.875rem;
-    transition: all 0.3s ease;
-}
-
-#clear-history:hover {
-    background-color: #dc3545;
-    color: white;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Loading animation */
-.typing-indicator {
-    display: flex;
-    align-items: center;
-    padding: 0.8rem 1.2rem;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    margin-bottom: 1rem;
-    width: fit-content;
-}
-
-.typing-indicator span {
-    height: 8px;
-    width: 8px;
-    background: var(--cal-primary);
-    border-radius: 50%;
-    display: inline-block;
-    margin: 0 2px;
-    animation: typing 1s infinite;
-}
-
-.typing-indicator span:nth-child(2) {
-    animation-delay: 0.2s;
-}
-
-.typing-indicator span:nth-child(3) {
-    animation-delay: 0.4s;
-}
-
-@keyframes typing {
-    0%, 100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-5px);
-    }
+.chat-message.bot .message-timestamp {
+    text-align: left;
 }
 </style>
 {% endblock %}
@@ -249,166 +121,114 @@
 document.addEventListener('DOMContentLoaded', function() {
     const chatForm = document.getElementById('chat-form');
     const userInput = document.getElementById('user-input');
-    const chatMessages = document.getElementById('chat-messages');
     const sendButton = document.getElementById('send-button');
-    const clearHistoryButton = document.getElementById('clear-history');
+    const chatMessages = document.getElementById('chat-messages');
+    let isWaiting = false;
 
-    // Function to update button state based on input
-    function updateButtonState() {
-        const message = userInput.value.trim();
-        sendButton.disabled = !message;
-    }
-
-    // Add input event listener to enable/disable button
-    userInput.addEventListener('input', updateButtonState);
-
-    // Function to format message content with Markdown
-    function formatMessageContent(content, isBot) {
-        if (isBot) {
-            return marked.parse(content);
-        }
-        return content;
-    }
-
-    function addMessage(content, isUser = false, messageId = null) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
-        if (messageId) {
-            messageDiv.dataset.messageId = messageId;
-        }
-        
-        const messageContent = document.createElement('div');
-        messageContent.className = 'message-content markdown-content';
-        messageContent.innerHTML = formatMessageContent(content, !isUser);
-        
-        messageDiv.appendChild(messageContent);
-        
-        // Add timestamp
-        const timestamp = document.createElement('small');
-        timestamp.className = 'message-timestamp';
-        timestamp.textContent = new Date().toLocaleString();
-        messageDiv.appendChild(timestamp);
-        
-        chatMessages.appendChild(messageDiv);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    // Format existing messages on page load
-    function formatExistingMessages() {
-        const botMessages = document.querySelectorAll('.bot-message .message-content');
-        botMessages.forEach(messageContent => {
-            const content = messageContent.textContent;
-            messageContent.innerHTML = formatMessageContent(content, true);
+    // Markdown rendering for bot messages
+    function renderMarkdownBubbles() {
+        document.querySelectorAll('.chat-bubble.markdown-content[data-is-bot="true"]').forEach(function(el) {
+            el.innerHTML = marked.parse(el.textContent);
         });
     }
 
-    // Format existing messages when the page loads
-    formatExistingMessages();
-
-    function addTypingIndicator() {
-        const indicator = document.createElement('div');
-        indicator.className = 'typing-indicator';
-        indicator.innerHTML = '<span></span><span></span><span></span>';
-        chatMessages.appendChild(indicator);
+    function appendMessage(content, isBot, timestamp) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'chat-message ' + (isBot ? 'bot' : 'user');
+        msgDiv.innerHTML = `
+            <div class="chat-bubble markdown-content" data-is-bot="${isBot}">
+                ${isBot ? content : escapeHtml(content)}
+            </div>
+            <small class="message-timestamp">${timestamp || new Date().toLocaleString()}</small>
+        `;
+        chatMessages.appendChild(msgDiv);
+        if (isBot) renderMarkdownBubbles();
         chatMessages.scrollTop = chatMessages.scrollHeight;
-        return indicator;
     }
 
-    // Clear chat history
-    clearHistoryButton.addEventListener('click', async function() {
-        if (!confirm('Are you sure you want to clear your chat history?')) {
-            return;
-        }
-        
-        try {
-            const response = await fetch('/clear_chat_history', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error('Failed to clear chat history');
-            }
-            
-            // Clear the chat messages container
-            chatMessages.innerHTML = '';
-            
-            // Add the welcome message
-            addMessage(`Hello! I'm your nutrition assistant. You can ask me about:
-- Nutrition facts and food information
-- Calorie content of foods
-- Healthy eating tips
-- Meal planning ideas`, false);
-            
-        } catch (error) {
-            console.error('Error clearing chat history:', error);
-            alert('Failed to clear chat history. Please try again.');
-        }
-    });
+    function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
 
-    chatForm.addEventListener('submit', async function(e) {
+    function updateSendButton() {
+        sendButton.disabled = isWaiting || !userInput.value.trim();
+    }
+    userInput.addEventListener('input', updateSendButton);
+
+    chatForm.addEventListener('submit', function(e) {
         e.preventDefault();
+        if (isWaiting || !userInput.value.trim()) return;
         const message = userInput.value.trim();
-        if (!message) return;
+        isWaiting = true;
+        updateSendButton();
 
-        // Add user message
-        addMessage(message, true);
-        userInput.value = '';
+        // Show user message immediately
+        appendMessage(message, false);
 
-        // Disable button while processing
-        sendButton.disabled = true;
+        // Show typing indicator
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'chat-message bot typing-indicator';
+        typingDiv.innerHTML = '<div class="chat-bubble">...</div>';
+        chatMessages.appendChild(typingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        // Add typing indicator
-        const typingIndicator = addTypingIndicator();
-
-        try {
-            const response = await fetch('/chatbot_ask', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({ message: message })
-            });
-
-            // Remove typing indicator
-            typingIndicator.remove();
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Network response was not ok');
+        fetch('/chatbot_ask', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            body: JSON.stringify({ message })
+        })
+        .then(res => res.json())
+        .then(data => {
+            typingDiv.remove();
+            if (data.reply) {
+                appendMessage(data.reply, true, new Date().toLocaleString());
+            } else if (data.error) {
+                appendMessage('Error: ' + data.error, true, new Date().toLocaleString());
             }
-
-            const data = await response.json();
-            if (data.error) {
-                throw new Error(data.error);
-            }
-            addMessage(data.reply, false, data.response_id);
-        } catch (error) {
-            console.error('Error:', error);
-            typingIndicator.remove();
-            addMessage(`Error: ${error.message || 'Sorry, I encountered an error. Please try again.'}`, false);
-        } finally {
-            // Re-enable button and update its state
-            updateButtonState();
-            userInput.focus();
-        }
+        })
+        .catch(err => {
+            typingDiv.remove();
+            appendMessage('Error: ' + err, true, new Date().toLocaleString());
+        })
+        .finally(() => {
+            isWaiting = false;
+            userInput.value = '';
+            updateSendButton();
+        });
     });
 
-    // Prevent Enter key from submitting empty form
-    userInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter' && !userInput.value.trim()) {
-            e.preventDefault();
-        }
+    // Clear chat history button
+    document.getElementById('clear-history').addEventListener('click', function() {
+        if (!confirm('Are you sure you want to clear your chat history?')) return;
+        fetch('/clear_chat_history', {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                chatMessages.innerHTML = `
+                    <div class="chat-message bot">
+                        <div class="chat-bubble markdown-content">
+                            Hello! I'm your nutrition assistant. You can ask me about:
+                            <ul class="mt-2">
+                                <li>Nutrition facts and food information</li>
+                                <li>Calorie content of foods</li>
+                                <li>Healthy eating tips</li>
+                                <li>Meal planning ideas</li>
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            }
+        });
     });
 
-    // Initial button state
-    updateButtonState();
-    // Focus input on page load
-    userInput.focus();
+    // Initial state
+    updateSendButton();
+    renderMarkdownBubbles();
 });
 </script>
 {% endblock %}

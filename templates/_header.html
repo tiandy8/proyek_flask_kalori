@@ -1,6 +1,6 @@
-<header class="site-header">
+<header class="site-header bg-white">
     <nav class="navbar container">
-        <a href="{{ url_for('index') }}" class="nav-logo text-white fs-1">Kalora</a>
+        <a href="{{ url_for('index') }}" class="nav-logo">Kalora</a>
         <div class="nav-links">
             <ul class="nav-menu">
                 {% if current_user.is_authenticated %}
@@ -11,10 +11,10 @@
             </ul>
             <ul class="nav-auth">
                 {% if current_user.is_authenticated %}
-                    <li class="nav-item"><a href="{{ url_for('logout') }}" class="nav-link btn btn-cal-outline" data-nav-id="logout">Logout</a></li>
+                    <li class="nav-item"><a href="{{ url_for('logout') }}" class="nav-link btn btn-outline-primary" data-nav-id="logout">Logout</a></li>
                 {% else %}
                     <li class="nav-item"><a href="{{ url_for('login') }}" class="nav-link" data-nav-id="login">Login</a></li>
-                    <li class="nav-item"><a href="{{ url_for('register') }}" class="nav-link btn btn-cal-primary" data-nav-id="register">Sign Up</a></li>
+                    <li class="nav-item"><a href="{{ url_for('register') }}" class="nav-link btn btn-primary" data-nav-id="register">Sign Up</a></li>
                 {% endif %}
             </ul>
         </div>
@@ -27,6 +27,15 @@
 </header>
 
 <style>
+
+.text-primary{
+    color: #2E7D32;
+}
+
+.primary-color{
+    color: var(--primary);
+}
+
 .site-header {
     background-color: var(--cal-background);
     box-shadow: 0 2px 8px var(--cal-shadow);

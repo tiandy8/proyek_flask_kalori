@@ -449,21 +449,40 @@ def log_meal():
 @app.route('/clear_chat_history', methods=['POST'])
 @login_required
 def clear_chat_history():
-    try:
-        # Delete all chat messages for the current user
-        ChatMessage.query.filter_by(user_id=current_user.id).delete()
-        db.session.commit()
-        return jsonify({'success': True})
-    except Exception as e:
-        db.session.rollback()
-        print(f"Error clearing chat history: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+    session['chat_history'] = []
+    return jsonify({'success': True})
 
 @app.route('/food_entry/<int:entry_id>')
 @login_required
 def food_entry_detail(entry_id):
     entry = FoodEntry.query.filter_by(id=entry_id, user_id=current_user.id).first_or_404()
     return render_template('food_entry_detail.html', entry=entry)
+
+@app.route('/food_history')
+@login_required
+def food_history():
+    # Get all food entries for the current user, ordered by date (newest first)
+    food_entries = FoodEntry.query.filter_by(user_id=current_user.id)\
+        .order_by(FoodEntry.date.desc())\
+        .all()
+    
+    # Group entries by date and ensure all numeric values are floats
+    entries_by_date = {}
+    for entry in food_entries:
+        # Convert all numeric values to floats, defaulting to 0.0 if None
+        entry.calories = safe_float(entry.calories)
+        entry.protein = safe_float(entry.protein)
+        entry.carbs = safe_float(entry.carbs)
+        entry.fat = safe_float(entry.fat)
+        
+        date_key = entry.date.strftime('%Y-%m-%d')
+        if date_key not in entries_by_date:
+            entries_by_date[date_key] = []
+        entries_by_date[date_key].append(entry)
+    
+    return render_template('food_history.html', 
+                         title='Food History',
+                         entries_by_date=entries_by_date)
 
 if __name__ == '__main__':
     with app.app_context():

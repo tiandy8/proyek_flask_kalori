@@ -18,11 +18,6 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # OpenRouter API configuration
-    OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY', 'YOUR_API_KEY_HERE')
-    if not OPENROUTER_API_KEY or OPENROUTER_API_KEY == 'YOUR_API_KEY_HERE':
+    OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY')
+    if not OPENROUTER_API_KEY:
         print("WARNING: OPENROUTER_API_KEY not found in environment variables or .env file.")
-
-    # OpenAI API configuration
-    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', 'YOUR_API_KEY_HERE')
-    if not OPENAI_API_KEY or OPENAI_API_KEY == 'YOUR_API_KEY_HERE':
-        print("WARNING: OPENAI_API_KEY not found in environment variables or .env file.")

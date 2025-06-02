@@ -6,7 +6,7 @@ from config import Config
 
 # Configure the OpenRouter API
 OPENROUTER_API_KEY = Config.OPENROUTER_API_KEY
-if not OPENROUTER_API_KEY or OPENROUTER_API_KEY == 'YOUR_API_KEY_HERE':
+if not OPENROUTER_API_KEY:
     raise ValueError("OpenRouter API key not configured. Please set OPENROUTER_API_KEY in your .env file.")
 
 # System prompt for the nutrition bot
@@ -26,7 +26,6 @@ def get_chat_response(user_message):
     """Get response from the OpenRouter chat API."""
     try:
         print(f"Processing message: {user_message}")
-        print(f"Using API key: {OPENROUTER_API_KEY[:5]}...")  # Print first 5 chars for debugging
         
         headers = {
             "Authorization": f"Bearer {OPENROUTER_API_KEY}",
@@ -49,10 +48,6 @@ def get_chat_response(user_message):
             headers=headers,
             json=data
         )
-        
-        print(f"API Response Status: {response.status_code}")
-        print(f"API Response Headers: {response.headers}")
-        print(f"API Response Content: {response.text[:200]}...")  # Print first 200 chars
         
         if response.status_code == 200:
             result = response.json()

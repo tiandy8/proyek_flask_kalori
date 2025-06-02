@@ -5,10 +5,10 @@
     <!-- Greeting Card -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card calai-greeting-card text-white">
+            <div class="card">
                 <div class="card-body">
                     <h2 class="card-title mb-1">Track Your Food, {{ current_user.username }}!</h2>
-                    <p class="card-text">Upload a photo for instant analysis or log your meal manually.</p>
+                    <p class="card-text text-secondary">Upload a photo for instant analysis or log your meal manually.</p>
                 </div>
             </div>
         </div>
@@ -18,7 +18,7 @@
         <div class="col-lg-6 col-12">
             <div class="card mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0 text-white">Scan Your Meal</h5>
+                    <h5 class="mb-0">Scan Your Meal</h5>
                 </div>
                 <div class="card-body">
                     <form id="imageUploadForm" enctype="multipart/form-data">
@@ -27,7 +27,7 @@
                                 <button type="button" class="btn btn-primary" id="takePhotoBtn">
                                     <i class="fas fa-camera me-2"></i>Take Photo
                                 </button>
-                                <button type="button" class="btn btn-secondary" id="chooseFromLibraryBtn">
+                                <button type="button" class="btn btn-outline-primary" id="chooseFromLibraryBtn">
                                     <i class="fas fa-images me-2"></i>Choose from Library
                                 </button>
                             </div>
@@ -38,11 +38,11 @@
                         </div>
                         <div id="uploadStatus" class="alert d-none"></div>
                         <div id="loadingSpinner" class="spinner d-none"></div>
-                        <button type="button" class="btn calai-btn-gradient w-100" id="uploadButton" disabled>Analyze Image</button>
+                        <button type="button" class="btn btn-primary w-100" id="uploadButton" disabled>Analyze Image</button>
                     </form>
                 </div>
             </div>
-            <div class="card text-white">
+            <div class="card">
                 <div class="card-header">
                     <h5 class="mb-0">Recent Food Entries</h5>
                 </div>
@@ -54,24 +54,24 @@
                                 <div class="d-flex justify-content-between align-items-center">
                                     <h6 class="mb-1">{{ entry.name }}</h6>
                                     {% if entry.image_filename %}
-                                    <i class="fas fa-camera text-muted"></i>
+                                    <i class="fas fa-camera" style="color: var(--accent);"></i>
                                     {% endif %}
                                 </div>
-                                <p class="mb-1 text-muted">{{ entry.date.strftime('%Y-%m-%d %H:%M') }}</p>
+                                <p class="mb-1 text-secondary">{{ entry.date.strftime('%Y-%m-%d %H:%M') }}</p>
                                 {% if entry.calories %}
                                 <p class="mb-1">Calories: {{ entry.calories }} kcal</p>
                                 {% endif %}
                                 {% if entry.image_analysis %}
-                                <p class="mb-1">{{ entry.image_analysis[:100] }}...</p>
+                                <p class="mb-1 text-secondary">{{ entry.image_analysis[:100] }}...</p>
                                 {% endif %}
                                 {% if entry.description %}
-                                <p class="mb-1">{{ entry.description }}</p>
+                                <p class="mb-1 text-secondary">{{ entry.description }}</p>
                                 {% endif %}
                             </div>
                             {% endfor %}
                         </div>
                     {% else %}
-                        <p class="text-muted">No food entries yet</p>
+                        <p class="text-secondary">No food entries yet</p>
                     {% endif %}
                 </div>
             </div>
@@ -80,7 +80,7 @@
         <div class="col-lg-6 col-12">
             <div class="card h-100">
                 <div class="card-header">
-                    <h5 class="mb-0 text-white">Log Meal Manually</h5>
+                    <h5 class="mb-0">Log Meal Manually</h5>
                 </div>
                 <div class="card-body">
                     <form id="mealLogForm">
@@ -112,7 +112,7 @@
                                 <input type="number" class="form-control" id="fat">
                             </div>
                         </div>
-                        <button type="submit" class="btn calai-btn-gradient w-100">Save Entry</button>
+                        <button type="submit" class="btn btn-primary w-100">Save Entry</button>
                     </form>
                 </div>
             </div>
