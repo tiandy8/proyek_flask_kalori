@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container py-4">
+<div class="container chat-page">
     <div class="row justify-content-center">
-        <div class="col-lg-8 mx-auto" style="width: 65%;">
-            <div class="card">
+        <div class="col-lg-8 col-md-10 col-12 mx-auto">
+            <div class="card h-100">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h4 class="mb-0">Chat with NutriBot</h4>
                     <div class="d-flex align-items-center">
                         <button id="clear-history" class="btn btn-outline-primary btn-sm fw-bold me-2" title="Clear chat history">
-                            <i class="fas fa-trash me-1"></i>Clear Messages
+                            <i class="fas fa-xmark me-1"></i><span class="clear-text">Clear Messages</span>
                         </button>
                         <span class="badge bg-light text-primary">AI Nutrition Assistant</span>
                     </div>
